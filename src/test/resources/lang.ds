@@ -1,0 +1,27 @@
+
+
+let x = () -> {
+
+}
+
+fn main() -> test!anyerror {
+    if  {
+
+    }
+
+    for x in y {
+
+    }
+
+    while true {
+
+    }
+
+    try x();
+
+    try {
+        x()
+    }
+
+    return val;
+}

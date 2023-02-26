@@ -1,0 +1,13 @@
+
+section .data {
+
+}
+
+section .syscalls {
+
+}
+
+_start {
+    mov rds, len
+    mov rax, .data.hello
+}

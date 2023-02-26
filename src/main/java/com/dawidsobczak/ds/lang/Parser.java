@@ -1,8 +1,12 @@
 package com.dawidsobczak.ds.lang;
 
+import java.util.ArrayList;
 import java.util.Deque;
 
 public class Parser {
+    ParseTree outputTree;
+    ArrayList<Lexeme> stack = new ArrayList<>();
+
     enum Associativity {
         None,
         Left,
@@ -10,11 +14,7 @@ public class Parser {
         Equal
     }
 
-    ParseTree outputTree;
-    Deque stack;
-
     public void consumeToken(Lexeme s) throws ParserException {
-
     }
 
     public ParseTree getParseTree() {

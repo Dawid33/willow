@@ -15,6 +15,7 @@ public class Parser {
     }
 
     public void consumeToken(Lexeme s) throws ParserException {
+        
     }
 
     public ParseTree getParseTree() {

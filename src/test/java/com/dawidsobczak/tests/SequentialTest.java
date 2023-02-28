@@ -10,14 +10,14 @@ public class SequentialTest {
     public void a_test() throws Exception {
         InputStream s = this.getClass().getResourceAsStream("/test.ds");
         try (LexerInputStream lexemeStream = new LexerInputStream(s)) {
-            Parser p = new Parser();
+            Parser p = new Parser(new Grammar());
             while(lexemeStream.hasNext()) {
                 Lexeme l = lexemeStream.next();
                 System.out.println("LEXEME\t" + l.type);
                 p.consumeToken(l);
             }
 
-            ParseTree tree = Parser.parse(lexemeStream);
+            ParseTree tree = p.getParseTree();
 
         } catch (LexerException e) {
             throw e;

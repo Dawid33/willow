@@ -6,6 +6,11 @@ import java.util.Deque;
 public class Parser {
     ParseTree outputTree;
     ArrayList<Lexeme> stack = new ArrayList<>();
+    Grammar g;
+
+    public Parser(Grammar g) {
+        this.g = g;
+    }
 
     enum Associativity {
         None,
@@ -15,7 +20,6 @@ public class Parser {
     }
 
     public void consumeToken(Lexeme s) throws ParserException {
-        
     }
 
     public ParseTree getParseTree() {

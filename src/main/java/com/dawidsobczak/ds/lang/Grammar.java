@@ -42,14 +42,16 @@ provides it.
 
 public class Grammar {
     ArrayList<Rule> rules = new ArrayList<>();
-    record Rule(GrammarSymbols left, GrammarSymbols[] right) {}
+
+    record Rule(GrammarSymbols left, GrammarSymbols[] right) {
+    }
 
     public Grammar() {
         // Symbols in the grammar.
         var plus = GrammarSymbols.PLUS;
         var multiply = GrammarSymbols.MULTIPLY;
         var lparen = GrammarSymbols.LPAREN;
-        var rparen =GrammarSymbols.RPAREN;
+        var rparen = GrammarSymbols.RPAREN;
 
         var start = GrammarSymbols.START;
         var term = GrammarSymbols.TERM;
@@ -76,13 +78,13 @@ public class Grammar {
         // Build operator precedence table
         // From Parsing Techniques, A practical Guide 2008 By Dick Grune p.288
 
-        for (Rule r: rules) {
+        for (Rule r : rules) {
             if (nonTerminals.contains(r.left())) {
                 if (r.right.length > 0) {
-                    for(GrammarSymbols s : r.right) {
+                    for (GrammarSymbols s : r.right) {
                         if (terminals.contains(s)) {
                             if (!firstOps.containsKey(r.left)) {
-                                firstOps.put(r.left , new HashSet<>(Set.of(s)));
+                                firstOps.put(r.left, new HashSet<>(Set.of(s)));
                             } else {
                                 var right = firstOps.get(r.left);
                                 right.add(s);
@@ -91,10 +93,10 @@ public class Grammar {
                         }
                     }
 
-                    for(int i = r.right.length - 1; i >= 0; i--) {
+                    for (int i = r.right.length - 1; i >= 0; i--) {
                         if (terminals.contains(r.right[i])) {
                             if (!lastOps.containsKey(r.left)) {
-                                lastOps.put(r.left , new HashSet<>(Set.of(r.right[i])));
+                                lastOps.put(r.left, new HashSet<>(Set.of(r.right[i])));
                             } else {
                                 var right = lastOps.get(r.left);
                                 right.add(r.right[i]);
@@ -110,7 +112,7 @@ public class Grammar {
         boolean didSomething;
         do {
             didSomething = false;
-            for (Rule r: rules) {
+            for (Rule r : rules) {
                 if (nonTerminals.contains(r.left())) {
                     if (r.right.length > 0) {
                         if (nonTerminals.contains(r.right[0])) {
@@ -118,7 +120,7 @@ public class Grammar {
                                 var B = firstOps.get(r.right[0]);
                                 if (!firstOps.containsKey(r.left)) {
                                     didSomething = true;
-                                    firstOps.put(r.left , new HashSet<>(B));
+                                    firstOps.put(r.left, new HashSet<>(B));
                                 } else if (!firstOps.get(r.left).containsAll(B)) {
                                     firstOps.get(r.left).addAll(B);
                                     didSomething = true;
@@ -131,7 +133,7 @@ public class Grammar {
                                 var B = lastOps.get(r.right[r.right.length - 1]);
                                 if (!lastOps.containsKey(r.left)) {
                                     didSomething = true;
-                                    lastOps.put(r.left , new HashSet<>(B));
+                                    lastOps.put(r.left, new HashSet<>(B));
                                 } else if (!lastOps.get(r.left).containsAll(B)) {
                                     lastOps.get(r.left).addAll(B);
                                     didSomething = true;
@@ -141,16 +143,63 @@ public class Grammar {
                     }
                 }
             }
-        } while(didSomething);
+        } while (didSomething);
+
+        System.out.println("FIRST OP");
+        for (var row : lastOps.keySet()) {
+            System.out.println(row + ": " + firstOps.get(row));
+        }
+        System.out.println();
+
+        System.out.println("LAST OP");
+        for (var row : lastOps.keySet()) {
+            System.out.println(row + ": " + lastOps.get(row));
+        }
+        System.out.println();
 
         HashMap<GrammarSymbols, HashMap<GrammarSymbols, Associativity>> opTable = new HashMap<>();
         HashMap<GrammarSymbols, Associativity> template = new HashMap<>();
-        var templateRow = new ArrayList<>(List.of(plus, multiply,lparen,rparen));
-        for( var e : templateRow) {
+        var templateRow = new ArrayList<>(List.of(plus, multiply, lparen, rparen));
+        for (var e : templateRow) {
             template.put(e, Associativity.None);
         }
+
         for (GrammarSymbols terminal : terminals) {
             opTable.put(terminal, (HashMap<GrammarSymbols, Associativity>) template.clone());
+        }
+
+        for (Rule r : rules) {
+            for (int i = 0; i < r.right.length; i++) {
+                if (i + 1 < r.right.length) {
+                    if (terminals.contains(r.right[i]) && terminals.contains(r.right[i + 1])) {
+                        opTable.get(r.right[i]).put(r.right[i + 1], Associativity.Equal);
+                    }
+                    if (terminals.contains(r.right[i]) && nonTerminals.contains(r.right[i + 1])) {
+                        System.out.println(r.right[i] + " && " + r.right[i + 1]);
+                        if (firstOps.containsKey(r.right[i + 1])) {
+                            var firstOpA = firstOps.get(r.right[i + 1]);
+                            for (var q2 : firstOpA) {
+                                opTable.get(r.right[i]).put(q2, Associativity.Left);
+                            }
+                        }
+                    }
+                    if (nonTerminals.contains(r.right[i]) && terminals.contains(r.right[i + 1])) {
+                        System.out.println(r.right[i] + " && " + r.right[i + 1]);
+                        if (lastOps.containsKey(r.right[i])) {
+                            var lastOpA= lastOps.get(r.right[i]);
+                            for (var q2 : lastOpA) {
+                                opTable.get(q2).put(r.right[i + 1], Associativity.Rigth);
+//                                System.out.println(r.right[i + 1] + " > " + q2);
+                            }
+                        }
+                    }
+                }
+                if (i + 2 < r.right.length) {
+                    if (terminals.contains(r.right[i]) && nonTerminals.contains(r.right[i + 1]) && terminals.contains(r.right[i + 2])) {
+                        opTable.get(r.right[i]).put(r.right[i + 2], Associativity.Equal);
+                    }
+                }
+            }
         }
 
         System.out.printf("%-10s", "");

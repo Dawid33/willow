@@ -144,17 +144,30 @@ public class Grammar {
         } while(didSomething);
 
         HashMap<GrammarSymbols, HashMap<GrammarSymbols, Associativity>> opTable = new HashMap<>();
-
         HashMap<GrammarSymbols, Associativity> template = new HashMap<>();
-        template.put(plus, Associativity.None);
-        template.put(multiply, Associativity.None);
-        template.put(lparen, Associativity.None);
-        template.put(rparen, Associativity.None);
+        var templateRow = new ArrayList<>(List.of(plus, multiply,lparen,rparen));
+        for( var e : templateRow) {
+            template.put(e, Associativity.None);
+        }
         for (GrammarSymbols terminal : terminals) {
             opTable.put(terminal, (HashMap<GrammarSymbols, Associativity>) template.clone());
         }
 
+        System.out.printf("%-10s", "");
+        for (GrammarSymbols row : templateRow) {
+            System.out.printf("%-10s ", row);
+        }
+        System.out.println();
 
+        for (GrammarSymbols row : templateRow) {
+            System.out.printf("%-10s", row);
+            var currRow = opTable.get(row);
+            for (GrammarSymbols col : templateRow) {
+                System.out.printf("%-10s ", currRow.get(col));
+            }
+            System.out.println();
+        }
+        System.out.println();
 
         System.out.println();
     }

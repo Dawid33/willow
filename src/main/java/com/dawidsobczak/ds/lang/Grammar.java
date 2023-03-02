@@ -42,8 +42,12 @@ provides it.
 
 public class Grammar {
     ArrayList<Rule> rules = new ArrayList<>();
+    HashMap<GrammarSymbols, HashMap<GrammarSymbols, Associativity>> opTable = new HashMap<>();
 
-    record Rule(GrammarSymbols left, GrammarSymbols[] right) {
+    record Rule(GrammarSymbols left, GrammarSymbols[] right) {}
+
+    public Associativity getPrecedence(GrammarSymbols left, GrammarSymbols right) {
+        return opTable.get(left).get(right);
     }
 
     public Grammar() {
@@ -157,7 +161,6 @@ public class Grammar {
         }
         System.out.println();
 
-        HashMap<GrammarSymbols, HashMap<GrammarSymbols, Associativity>> opTable = new HashMap<>();
         HashMap<GrammarSymbols, Associativity> template = new HashMap<>();
         var templateRow = new ArrayList<>(List.of(plus, multiply, lparen, rparen));
         for (var e : templateRow) {
@@ -175,7 +178,7 @@ public class Grammar {
                         opTable.get(r.right[i]).put(r.right[i + 1], Associativity.Equal);
                     }
                     if (terminals.contains(r.right[i]) && nonTerminals.contains(r.right[i + 1])) {
-                        System.out.println(r.right[i] + " && " + r.right[i + 1]);
+//                        System.out.println(r.right[i] + " && " + r.right[i + 1]);
                         if (firstOps.containsKey(r.right[i + 1])) {
                             var firstOpA = firstOps.get(r.right[i + 1]);
                             for (var q2 : firstOpA) {
@@ -184,7 +187,7 @@ public class Grammar {
                         }
                     }
                     if (nonTerminals.contains(r.right[i]) && terminals.contains(r.right[i + 1])) {
-                        System.out.println(r.right[i] + " && " + r.right[i + 1]);
+//                        System.out.println(r.right[i] + " && " + r.right[i + 1]);
                         if (lastOps.containsKey(r.right[i])) {
                             var lastOpA= lastOps.get(r.right[i]);
                             for (var q2 : lastOpA) {
@@ -217,7 +220,6 @@ public class Grammar {
             System.out.println();
         }
         System.out.println();
-
         System.out.println();
     }
 }

@@ -1,12 +1,11 @@
 package com.dawidsobczak.ds.lang;
 
 import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Deque;
 
 public class Parser {
     ParseTree outputTree;
-    ArrayDeque<Lexeme> stack = new ArrayDeque<>();
+    record LexemeGrammarTuple(Lexeme lexeme, Associativity associativity) {}
+    ArrayDeque<LexemeGrammarTuple> stack = new ArrayDeque<>();
     Grammar g;
 
     public Parser(Grammar g) {
@@ -16,29 +15,22 @@ public class Parser {
     enum Associativity {
         None,
         Left,
-        Rigth,
-        Equal
+        Right,
+        Equal,
+        Undefined,
     }
 
-    public void consumeToken(Lexeme s) throws ParserException {
+    public void consumeToken(Lexeme l) throws ParserException {
         if (stack.isEmpty()) {
-            stack.push(s);
+            System.out.println("LEXEME\t" + l.type);
+            stack.push(new LexemeGrammarTuple(l, Associativity.Undefined));
             return;
         }
 
-        switch (s.type) {
-            case PLUS -> {
+        System.out.println("Precedence of " + stack.getFirst().lexeme().type+ " and " + l.type + " : " + g.getPrecedence(stack.getFirst().lexeme.type, l.type));
+        System.out.println("LEXEME\t" + l.type);
 
-            }
-        }
-
-//        switch (s.type) {
-//            case NUMBER -> {
-//                stack.addLast(s);
-//            }
-//            case PLUS -> {
-//            }
-//        }
+        stack.push(new LexemeGrammarTuple(l, g.getPrecedence(stack.getFirst().lexeme().type, l.type)));
     }
 
     public ParseTree getParseTree() {

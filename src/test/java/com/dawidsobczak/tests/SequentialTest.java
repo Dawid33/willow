@@ -13,7 +13,6 @@ public class SequentialTest {
             Parser p = new Parser(new Grammar());
             while(lexemeStream.hasNext()) {
                 Lexeme l = lexemeStream.next();
-                System.out.println("LEXEME\t" + l.type);
                 p.consumeToken(l);
             }
 

@@ -38,17 +38,13 @@ public class LexerInputStream implements AutoCloseable, Closeable, Iterator<Lexe
                     buf.append(c);
                     state = LexerState.IN_NUMBER;
                 } else if (c == '+') {
-                    return new Lexeme(LexemeType.PLUS, null);
-                } else if (c == '-') {
-                    return new Lexeme(LexemeType.HYPHEN, null);
+                    return new Lexeme(GrammarSymbols.PLUS, null);
                 } else if (c == '*') {
-                    return new Lexeme(LexemeType.ASTERISKS, null);
-                } else if (c == '/') {
-                    return new Lexeme(LexemeType.FORWARD_SLASH, null);
+                    return new Lexeme(GrammarSymbols.MULTIPLY, null);
                 } else if (c == '(') {
-                    return new Lexeme(LexemeType.LEFT_PAREN, null);
+                    return new Lexeme(GrammarSymbols.LPAREN, null);
                 } else if (c == ')') {
-                    return new Lexeme(LexemeType.RIGHT_PAREN, null);
+                    return new Lexeme(GrammarSymbols.RPAREN, null);
                 } else if (!Character.isWhitespace(c)) {
                     throw new LexerException("Unrecognized char");
                 }
@@ -56,7 +52,7 @@ public class LexerInputStream implements AutoCloseable, Closeable, Iterator<Lexe
                 if (Character.isDigit(c)) {
                     buf.append(c);
                 } else if (Character.isWhitespace(c) || c == '+' || c == '-' || c == '*' || c == '/' || c == '(' || c == ')') {
-                    Lexeme l = new Lexeme(LexemeType.NUMBER, buf.toString());
+                    Lexeme l = new Lexeme(GrammarSymbols.NUMBER, buf.toString());
                     buf.setLength(0);
                     state = LexerState.DATA;
                     return l;
@@ -66,11 +62,6 @@ public class LexerInputStream implements AutoCloseable, Closeable, Iterator<Lexe
             }
         }
         return null;
-    }
-
-    @Override
-    public void forEachRemaining(Consumer<? super Lexeme> action) {
-        Iterator.super.forEachRemaining(action);
     }
 
     @Override

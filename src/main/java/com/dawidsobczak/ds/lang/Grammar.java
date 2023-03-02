@@ -63,8 +63,8 @@ public class Grammar {
         var expr = GrammarSymbols.EXPR;
         var number = GrammarSymbols.NUMBER;
 
-        var terminals = new ArrayList<>(List.of(new GrammarSymbols[]{plus, multiply, lparen, rparen}));
-        var nonTerminals = new ArrayList<>(List.of(new GrammarSymbols[]{start, term, factor, expr, number}));
+        var terminals = new ArrayList<>(List.of(new GrammarSymbols[]{plus, multiply, lparen, rparen, number}));
+        var nonTerminals = new ArrayList<>(List.of(new GrammarSymbols[]{start, term, factor, expr}));
 
         rules.add(new Rule(start, new GrammarSymbols[]{expr}));
 
@@ -162,7 +162,7 @@ public class Grammar {
         System.out.println();
 
         HashMap<GrammarSymbols, Associativity> template = new HashMap<>();
-        var templateRow = new ArrayList<>(List.of(plus, multiply, lparen, rparen));
+        var templateRow = new ArrayList<>(List.of(plus, multiply, lparen, rparen, number));
         for (var e : templateRow) {
             template.put(e, Associativity.None);
         }
@@ -191,7 +191,7 @@ public class Grammar {
                         if (lastOps.containsKey(r.right[i])) {
                             var lastOpA= lastOps.get(r.right[i]);
                             for (var q2 : lastOpA) {
-                                opTable.get(q2).put(r.right[i + 1], Associativity.Rigth);
+                                opTable.get(q2).put(r.right[i + 1], Associativity.Right);
 //                                System.out.println(r.right[i + 1] + " > " + q2);
                             }
                         }
@@ -219,7 +219,6 @@ public class Grammar {
             }
             System.out.println();
         }
-        System.out.println();
         System.out.println();
     }
 }

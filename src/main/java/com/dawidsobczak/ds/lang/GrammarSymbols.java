@@ -11,4 +11,7 @@ public enum GrammarSymbols {
     NUMBER,
     LPAREN,
     RPAREN,
+    DELIM,
+    A,
+    B,
 }

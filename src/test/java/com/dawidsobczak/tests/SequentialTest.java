@@ -13,8 +13,12 @@ public class SequentialTest {
             Parser p = new Parser(new Grammar());
             while(lexemeStream.hasNext()) {
                 Lexeme l = lexemeStream.next();
-                p.consumeToken(l);
+                if (l != null) {
+                    p.consumeToken(l);
+                }
             }
+            p.consumeToken(new Lexeme(GrammarSymbols.DELIM, null));
+            p.printStack();
 
             ParseTree tree = p.getParseTree();
 

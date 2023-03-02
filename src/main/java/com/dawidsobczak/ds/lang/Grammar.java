@@ -14,6 +14,19 @@ T     -> F
 F     -> NUMBER
 F     -> ( E )
 
+S -> A
+S -> B
+A -> A + B
+A -> B + B
+B -> B * NUMBER
+B -> NUMBER
+
+E -> T
+T -> T * f
+T -> F
+F -> NUMBER
+F -> ( E )
+
 Operator Precedence Table from grammar
 
 For such grammars, setting up the precedence table is relatively easy. First we
@@ -41,6 +54,8 @@ provides it.
 
 
 public class Grammar {
+    public ArrayList<GrammarSymbols> nonTerminals;
+    public ArrayList<GrammarSymbols> terminals;
     ArrayList<Rule> rules = new ArrayList<>();
     HashMap<GrammarSymbols, HashMap<GrammarSymbols, Associativity>> opTable = new HashMap<>();
 
@@ -56,17 +71,37 @@ public class Grammar {
         var multiply = GrammarSymbols.MULTIPLY;
         var lparen = GrammarSymbols.LPAREN;
         var rparen = GrammarSymbols.RPAREN;
+        var delim = GrammarSymbols.DELIM;
 
         var start = GrammarSymbols.START;
+        var A = GrammarSymbols.A;
+        var B = GrammarSymbols.B;
         var term = GrammarSymbols.TERM;
         var factor = GrammarSymbols.FACTOR;
         var expr = GrammarSymbols.EXPR;
         var number = GrammarSymbols.NUMBER;
 
-        var terminals = new ArrayList<>(List.of(new GrammarSymbols[]{plus, multiply, lparen, rparen, number}));
-        var nonTerminals = new ArrayList<>(List.of(new GrammarSymbols[]{start, term, factor, expr}));
+//        this.terminals = new ArrayList<>(List.of(new GrammarSymbols[]{delim, plus, multiply, number}));
+//        this.nonTerminals = new ArrayList<>(List.of(new GrammarSymbols[]{start, A, B}));
+        this.terminals = new ArrayList<>(List.of(new GrammarSymbols[]{delim, plus, multiply, lparen, rparen, number}));
+        this.nonTerminals = new ArrayList<>(List.of(new GrammarSymbols[]{start, expr, term, factor}));
+//        S -> A
+//        S -> B
+//        A -> A + B
+//        A -> B + B
+//        B -> B * NUMBER
+//        B -> NUMBER
 
-        rules.add(new Rule(start, new GrammarSymbols[]{expr}));
+//        rules.add(new Rule(start, new GrammarSymbols[]{delim, A, delim}));
+//        rules.add(new Rule(start, new GrammarSymbols[]{delim, B, delim}));
+//
+//        rules.add(new Rule(A, new GrammarSymbols[]{A, plus, B}));
+//        rules.add(new Rule(A, new GrammarSymbols[]{B, plus, B}));
+//
+//        rules.add(new Rule(B, new GrammarSymbols[]{B, multiply, number}));
+//        rules.add(new Rule(B, new GrammarSymbols[]{number}));
+
+        rules.add(new Rule(start, new GrammarSymbols[]{delim, expr, delim}));
 
         rules.add(new Rule(expr, new GrammarSymbols[]{expr, plus, term}));
         rules.add(new Rule(expr, new GrammarSymbols[]{term}));
@@ -121,12 +156,12 @@ public class Grammar {
                     if (r.right.length > 0) {
                         if (nonTerminals.contains(r.right[0])) {
                             if (firstOps.containsKey(r.right[0])) {
-                                var B = firstOps.get(r.right[0]);
+                                var Bs = firstOps.get(r.right[0]);
                                 if (!firstOps.containsKey(r.left)) {
                                     didSomething = true;
-                                    firstOps.put(r.left, new HashSet<>(B));
-                                } else if (!firstOps.get(r.left).containsAll(B)) {
-                                    firstOps.get(r.left).addAll(B);
+                                    firstOps.put(r.left, new HashSet<>(Bs));
+                                } else if (!firstOps.get(r.left).containsAll(Bs)) {
+                                    firstOps.get(r.left).addAll(Bs);
                                     didSomething = true;
                                 }
                             }
@@ -134,12 +169,12 @@ public class Grammar {
 
                         if (nonTerminals.contains(r.right[r.right.length - 1])) {
                             if (lastOps.containsKey(r.right[r.right.length - 1])) {
-                                var B = lastOps.get(r.right[r.right.length - 1]);
+                                var Bs = lastOps.get(r.right[r.right.length - 1]);
                                 if (!lastOps.containsKey(r.left)) {
                                     didSomething = true;
-                                    lastOps.put(r.left, new HashSet<>(B));
-                                } else if (!lastOps.get(r.left).containsAll(B)) {
-                                    lastOps.get(r.left).addAll(B);
+                                    lastOps.put(r.left, new HashSet<>(Bs));
+                                } else if (!lastOps.get(r.left).containsAll(Bs)) {
+                                    lastOps.get(r.left).addAll(Bs);
                                     didSomething = true;
                                 }
                             }
@@ -162,7 +197,8 @@ public class Grammar {
         System.out.println();
 
         HashMap<GrammarSymbols, Associativity> template = new HashMap<>();
-        var templateRow = new ArrayList<>(List.of(plus, multiply, lparen, rparen, number));
+//        var templateRow = new ArrayList<>(List.of(delim, number, plus, multiply));
+        var templateRow = new ArrayList<>(List.of(delim, number, plus, multiply, lparen, rparen));
         for (var e : templateRow) {
             template.put(e, Associativity.None);
         }

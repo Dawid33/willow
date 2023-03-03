@@ -9,7 +9,7 @@ Arithmetic expr grammar
 START -> E
 E     -> E + T
 E     -> T
-T     -> T * f
+T     -> T * F
 T     -> F
 F     -> NUMBER
 F     -> ( E )
@@ -59,7 +59,7 @@ public class Grammar {
     ArrayList<Rule> rules = new ArrayList<>();
     HashMap<GrammarSymbols, HashMap<GrammarSymbols, Associativity>> opTable = new HashMap<>();
 
-    record Rule(GrammarSymbols left, GrammarSymbols[] right) {}
+    record Rule(GrammarSymbols left, GrammarSymbols[] right, int priority) {}
 
     public Associativity getPrecedence(GrammarSymbols left, GrammarSymbols right) {
         return opTable.get(left).get(right);
@@ -74,6 +74,7 @@ public class Grammar {
         var delim = GrammarSymbols.DELIM;
 
         var start = GrammarSymbols.START;
+        var program= GrammarSymbols.PROGRAM;
         var A = GrammarSymbols.A;
         var B = GrammarSymbols.B;
         var term = GrammarSymbols.TERM;
@@ -81,35 +82,18 @@ public class Grammar {
         var expr = GrammarSymbols.EXPR;
         var number = GrammarSymbols.NUMBER;
 
-//        this.terminals = new ArrayList<>(List.of(new GrammarSymbols[]{delim, plus, multiply, number}));
-//        this.nonTerminals = new ArrayList<>(List.of(new GrammarSymbols[]{start, A, B}));
-        this.terminals = new ArrayList<>(List.of(new GrammarSymbols[]{delim, plus, multiply, lparen, rparen, number}));
-        this.nonTerminals = new ArrayList<>(List.of(new GrammarSymbols[]{start, expr, term, factor}));
-//        S -> A
-//        S -> B
-//        A -> A + B
-//        A -> B + B
-//        B -> B * NUMBER
-//        B -> NUMBER
+        this.terminals = new ArrayList<>(List.of(new GrammarSymbols[]{plus, multiply, number}));
+        this.nonTerminals = new ArrayList<>(List.of(new GrammarSymbols[]{start, A, B}));
 
-//        rules.add(new Rule(start, new GrammarSymbols[]{delim, A, delim}));
-//        rules.add(new Rule(start, new GrammarSymbols[]{delim, B, delim}));
-//
-//        rules.add(new Rule(A, new GrammarSymbols[]{A, plus, B}));
-//        rules.add(new Rule(A, new GrammarSymbols[]{B, plus, B}));
-//
-//        rules.add(new Rule(B, new GrammarSymbols[]{B, multiply, number}));
-//        rules.add(new Rule(B, new GrammarSymbols[]{number}));
+        rules.add(new Rule(start, new GrammarSymbols[]{A}, 0));
+        rules.add(new Rule(start, new GrammarSymbols[]{B}, 0));
 
-        rules.add(new Rule(start, new GrammarSymbols[]{delim, expr, delim}));
+        rules.add(new Rule(A, new GrammarSymbols[]{A, plus, B}, 2));
+        rules.add(new Rule(A, new GrammarSymbols[]{B, plus, B}, 1));
 
-        rules.add(new Rule(expr, new GrammarSymbols[]{expr, plus, term}));
-        rules.add(new Rule(expr, new GrammarSymbols[]{term}));
+        rules.add(new Rule(B, new GrammarSymbols[]{B, multiply, number}, 2));
+        rules.add(new Rule(B, new GrammarSymbols[]{number}, 1));
 
-        rules.add(new Rule(term, new GrammarSymbols[]{term, multiply, factor}));
-        rules.add(new Rule(term, new GrammarSymbols[]{factor}));
-        rules.add(new Rule(factor, new GrammarSymbols[]{number}));
-        rules.add(new Rule(factor, new GrammarSymbols[]{lparen, expr, rparen}));
 
         var firstOps = new HashMap<GrammarSymbols, Set<GrammarSymbols>>();
         var lastOps = new HashMap<GrammarSymbols, Set<GrammarSymbols>>();
@@ -197,8 +181,7 @@ public class Grammar {
         System.out.println();
 
         HashMap<GrammarSymbols, Associativity> template = new HashMap<>();
-//        var templateRow = new ArrayList<>(List.of(delim, number, plus, multiply));
-        var templateRow = new ArrayList<>(List.of(delim, number, plus, multiply, lparen, rparen));
+        var templateRow = new ArrayList<>(List.of(number, plus, multiply));
         for (var e : templateRow) {
             template.put(e, Associativity.None);
         }

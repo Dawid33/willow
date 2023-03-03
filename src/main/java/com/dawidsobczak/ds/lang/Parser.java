@@ -1,21 +1,20 @@
 package com.dawidsobczak.ds.lang;
 
-import javax.swing.*;
 import java.io.IOException;
 import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
-import java.util.Scanner;
 
 public class Parser {
     ParseTree outputTree;
-    record LexemeGrammarTuple(Lexeme lexeme, Associativity associativity) {}
+    public record LexemeGrammarTuple(Lexeme lexeme, Associativity associativity) {}
     LinkedList<LexemeGrammarTuple> stack = new LinkedList<>();
     Grammar g;
+    boolean shouldReconsume = false;
 
     public Parser(Grammar g) {
         this.g = g;
-        stack.push(new LexemeGrammarTuple(new Lexeme(GrammarSymbols.DELIM, null), Associativity.Right));
     }
 
     enum Associativity {
@@ -27,149 +26,164 @@ public class Parser {
     }
 
     public void consumeToken(Lexeme l) throws ParserException, IOException {
-//        if (stack.isEmpty()) {
-////            System.out.println("LEXEME\t" + l.type);
-//            stack.push(new LexemeGrammarTuple(l, Associativity.Undefined));
-//            return;
-//        }
+        if (stack.isEmpty()) {
+            stack.add(new LexemeGrammarTuple(l, Associativity.Left));
+            return;
+        }
 
-        // Y = stack.getFirst().lexeme().type
-        // X = l.type
-        // Y < X
-        boolean isRunning = true;
-        boolean didNothing = true;
-        int cnt = 0;
-        while(isRunning) {
-            System.out.println();
-            LexemeGrammarTuple topMost = null;
-            int topMostIndex = 0;
-            for (int i = 0; i < stack.size(); i++) {
-                if (g.terminals.contains(stack.get(i).lexeme.type)) {
-                    topMost = stack.get(i);
-                    topMostIndex = i;
-                    break;
+        var X = l;
+
+        shouldReconsume = true;
+        while (shouldReconsume) {
+            shouldReconsume = false;
+
+            if (stack.size() == 1) {
+                if (stack.get(0).associativity == Associativity.Undefined && l.type == GrammarSymbols.DELIM) {
+                    System.out.println("Done");
+                    return;
                 }
             }
-            LexemeGrammarTuple Y;
-            if (topMost != null) {
-                Associativity a =  g.getPrecedence(topMost.lexeme().type, l.type);
-                if (l.type == GrammarSymbols.DELIM) {
-                    Y = new LexemeGrammarTuple(l, Associativity.Left);
-                } else {
-                    Y = new LexemeGrammarTuple(l, a);
-                }
-            } else {
-                throw new ParserException("No terminal in stack");
-            }
 
-            System.out.println("TOP : " + Y.lexeme.type + " " + Y.associativity);
-            printStack();
-            if (Y.lexeme.type == GrammarSymbols.DELIM && stack.get(0).lexeme.type == GrammarSymbols.DELIM) {
+            LexemeGrammarTuple Y = null;
+            for (LexemeGrammarTuple element : stack) {
+                if(g.terminals.contains(element.lexeme.type)) {
+                    Y = element;
+                }
+            }
+            if (Y == null) {
+                stack.add(new LexemeGrammarTuple(l, Associativity.Left));
                 return;
             }
 
-            if ((Y.associativity == Associativity.Left || Y.associativity == Associativity.Equal)
-                && (Y.lexeme.type != GrammarSymbols.DELIM)) {
-                stack.push(Y);
-                break;
-            } else if (g.nonTerminals.contains(Y.lexeme.type)) {
-                stack.push(new LexemeGrammarTuple(Y.lexeme, Associativity.Undefined));
-                break;
-            } else if (Y.associativity == Associativity.Right || Y.lexeme.type == GrammarSymbols.DELIM){
-                boolean hasLeft = false;
-                for (int i = topMostIndex; i < stack.size(); i++) {
-                    var Xi = stack.get(i);
-//                    System.out.println(i);
-                    if (Xi.associativity == Associativity.Left) {
-                        System.out.printf("Attempting to reduce after recieving %s %s\n", l.type, Y.associativity);
-                        hasLeft = true;
-                        LexemeGrammarTuple XiMinusOne;
-                        if (i > 0) {
-                            XiMinusOne = stack.get(i - 1);
-                        } else {
-                            XiMinusOne = Y;
-                        }
+            Associativity precedence;
+            if (X.type == GrammarSymbols.DELIM) {
+                precedence = Associativity.Right;
+            } else {
+                precedence = g.getPrecedence(Y.lexeme.type, X.type);
+            }
 
-                        if (g.nonTerminals.contains(XiMinusOne.lexeme.type)) {
-                            for (Grammar.Rule r : g.rules) {
-                                boolean ruleApplies = true;
-                                for (int j = 0; j < r.right().length; j++) {
-                                    GrammarSymbols curr;
-                                    try {
-                                        curr = stack.get(i + j - 1).lexeme.type;
-                                    } catch (NoSuchElementException e) {
-                                        ruleApplies = false;
-                                        break;
-                                    }
 
-                                    if (curr != r.right()[j]) {
-                                        ruleApplies = false;
-                                        break;
-                                    }
-                                }
-                                if (ruleApplies) {
-//                                    System.out.println(r.right().length);
-                                    for (int j = 0; j < r.right().length; j++) {
-                                        stack.remove(i - 1);
-//                                        printStack();
-                                    }
+            System.out.println("Applying " + X.type + " " + precedence);
+            printStack();
 
-                                    stack.add(i - 1, new LexemeGrammarTuple(new Lexeme(r.left(), null), Associativity.Undefined));
-                                    didNothing = false;
-                                }
-                            }
+            if (precedence == Associativity.Left) {
+                stack.add(new LexemeGrammarTuple(X, Associativity.Left));
+                System.out.println("Append\n");
+                return;
+            }
 
-                        } else if (g.terminals.contains(XiMinusOne.lexeme.type) || Y.lexeme.type == GrammarSymbols.DELIM){
-                            for (Grammar.Rule r : g.rules) {
-                                boolean ruleApplies = true;
-                                for (int j = 0; j < r.right().length; j++) {
-                                    GrammarSymbols curr;
-                                    try {
-                                        curr = stack.get(i + j).lexeme.type;
-                                    } catch (NoSuchElementException e) {
-                                        ruleApplies = false;
-                                        break;
-                                    }
+            if (precedence == Associativity.Equal) {
+                stack.add(new LexemeGrammarTuple(X, Associativity.Equal));
+                System.out.println("Append\n");
+                return;
+            }
 
-                                    if (curr != r.right()[j]) {
-                                        ruleApplies = false;
-                                        break;
-                                    }
-                                }
-                                if (ruleApplies) {
-                                    for (int j = 0; j < r.right().length; j++)
-                                        stack.remove(i);
-                                    stack.add(i, new LexemeGrammarTuple(new Lexeme(r.left(), null), Associativity.Undefined));
-                                    didNothing = false;
-                                }
-                            }
-                        } else {
-                            throw new ParserException("Symbol does not exist in grammar... ?");
-                        }
-                        break;
+            if (g.nonTerminals.contains(X.type)) {
+                stack.add(new LexemeGrammarTuple(X, Associativity.Undefined));
+                System.out.println("Append\n");
+                return;
+            }
+
+            if (precedence == Associativity.Right) {
+                int i = -1;
+                for (int j = 0; j < stack.size(); j++) {
+                    if (stack.get(j).associativity == Associativity.Left) {
+                        i = j;
                     }
                 }
-                if (!hasLeft) {
-                    stack.push(Y);
-                    didNothing = false;
-                }
-            }
 
-//            if (top.lexeme.type == GrammarSymbols.DELIM) {
-//                isRunning = true;
-//            } else {
-//                isRunning = false;
-//            }
-
-            if (didNothing) {
-                break;
-            } else {
-                if (cnt > 50){
-                    break;
+                if (i < 0) {
+                    stack.add(new LexemeGrammarTuple(X, Associativity.Right));
+                    System.out.println("Append\n");
+                    return;
                 } else {
-                    cnt++;
+                    LexemeGrammarTuple XiMinusOne = null;
+                    boolean isDelim = false;
+                    try {
+                        XiMinusOne = stack.get(i - 1);
+                    } catch (IndexOutOfBoundsException e) {
+                        isDelim = true;
+                    }
+
+                    if (isDelim) {
+                        processTerminal(i);
+                    } else {
+                        if (g.terminals.contains(XiMinusOne.lexeme.type)) {
+                            processTerminal(i);
+                        } else if (g.nonTerminals.contains(XiMinusOne.lexeme.type)) {
+                            processNonTerminal(i);
+                        } else {
+                            throw new ParserException("Should be able to reduce but cannot.");
+                        }
+                    }
                 }
             }
+        }
+    }
+
+    void processTerminal(int i) {
+        for (Grammar.Rule r : g.rules) {
+            boolean ruleApplies = true;
+            for (int j = 0; j < r.right().length; j++) {
+                GrammarSymbols curr;
+                try {
+                    curr = stack.get(i + j).lexeme.type;
+                } catch (NoSuchElementException e) {
+                    ruleApplies = false;
+                    break;
+                }
+
+                if (curr != r.right()[j]) {
+                    ruleApplies = false;
+                    break;
+                }
+            }
+            if (ruleApplies) {
+                for (int j = 0; j < r.right().length; j++)
+                    stack.remove(i);
+
+                stack.add(i, new LexemeGrammarTuple(new Lexeme(r.left(), null), Associativity.Undefined));
+                System.out.println("Reduce\n");
+                shouldReconsume = true;
+            }
+        }
+    }
+
+    void processNonTerminal(int i) {
+        Grammar.Rule rule = null;
+        for (Grammar.Rule r : g.rules) {
+            boolean ruleApplies = true;
+            for (int j = 0; j < r.right().length; j++) {
+                GrammarSymbols curr;
+                try {
+                    curr = stack.get(i + j - 1).lexeme.type;
+                } catch (IndexOutOfBoundsException e) {
+                    ruleApplies = false;
+                    break;
+                }
+
+                if (curr != r.right()[j]) {
+                    ruleApplies = false;
+                    break;
+                }
+            }
+            if (ruleApplies) {
+                if (rule != null) {
+                    if (r.priority() > rule.priority()) {
+                        rule = r;
+                    }
+                } else {
+                    rule = r;
+                }
+            }
+        }
+        if (rule != null) {
+            for (int j = 0; j < rule.right().length; j++)
+                stack.remove(i - 1);
+
+            stack.add(i - 1 , new LexemeGrammarTuple(new Lexeme(rule.left(), null), Associativity.Undefined));
+            System.out.println("Reduce\n");
+            shouldReconsume = true;
         }
     }
 

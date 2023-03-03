@@ -1,8 +1,6 @@
-package com.dawidsobczak.ds.lang;
+package com.dawidsobczak.ds.phase_one;
 
 import java.io.IOException;
-import java.util.ArrayDeque;
-import java.util.Deque;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
 
@@ -10,7 +8,7 @@ public class Parser {
     ParseTree outputTree;
     public record LexemeGrammarTuple(Lexeme lexeme, Associativity associativity) {}
     LinkedList<LexemeGrammarTuple> stack = new LinkedList<>();
-    Grammar g;
+    Grammar<GrammarSymbols> g;
     boolean shouldReconsume = false;
 
     public Parser(Grammar g) {
@@ -122,9 +120,9 @@ public class Parser {
     }
 
     void processTerminal(int i) {
-        for (Grammar.Rule r : g.rules) {
+        for(Rule<GrammarSymbols> r : g.rules) {
             boolean ruleApplies = true;
-            for (int j = 0; j < r.right().length; j++) {
+            for (int j = 0; j < r.right.length; j++) {
                 GrammarSymbols curr;
                 try {
                     curr = stack.get(i + j).lexeme.type;
@@ -133,16 +131,16 @@ public class Parser {
                     break;
                 }
 
-                if (curr != r.right()[j]) {
+                if (curr != r.right[j]) {
                     ruleApplies = false;
                     break;
                 }
             }
             if (ruleApplies) {
-                for (int j = 0; j < r.right().length; j++)
+                for (int j = 0; j < r.right.length; j++)
                     stack.remove(i);
 
-                stack.add(i, new LexemeGrammarTuple(new Lexeme(r.left(), null), Associativity.Undefined));
+                stack.add(i, new LexemeGrammarTuple(new Lexeme(r.left, null), Associativity.Undefined));
                 System.out.println("Reduce\n");
                 shouldReconsume = true;
             }
@@ -150,10 +148,10 @@ public class Parser {
     }
 
     void processNonTerminal(int i) {
-        Grammar.Rule rule = null;
-        for (Grammar.Rule r : g.rules) {
+        Rule<GrammarSymbols> rule = null;
+        for (Rule<GrammarSymbols> r : g.rules) {
             boolean ruleApplies = true;
-            for (int j = 0; j < r.right().length; j++) {
+            for (int j = 0; j < r.right.length; j++) {
                 GrammarSymbols curr;
                 try {
                     curr = stack.get(i + j - 1).lexeme.type;
@@ -162,14 +160,14 @@ public class Parser {
                     break;
                 }
 
-                if (curr != r.right()[j]) {
+                if (curr != r.right[j]) {
                     ruleApplies = false;
                     break;
                 }
             }
             if (ruleApplies) {
                 if (rule != null) {
-                    if (r.priority() > rule.priority()) {
+                    if (r.priority > rule.priority) {
                         rule = r;
                     }
                 } else {
@@ -178,10 +176,10 @@ public class Parser {
             }
         }
         if (rule != null) {
-            for (int j = 0; j < rule.right().length; j++)
+            for (int j = 0; j < rule.right.length; j++)
                 stack.remove(i - 1);
 
-            stack.add(i - 1 , new LexemeGrammarTuple(new Lexeme(rule.left(), null), Associativity.Undefined));
+            stack.add(i - 1 , new LexemeGrammarTuple(new Lexeme(rule.left, null), Associativity.Undefined));
             System.out.println("Reduce\n");
             shouldReconsume = true;
         }

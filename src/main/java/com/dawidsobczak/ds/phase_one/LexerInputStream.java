@@ -1,4 +1,4 @@
-package com.dawidsobczak.ds.lang;
+package com.dawidsobczak.ds.phase_one;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
-import java.util.function.Consumer;
 
 public class LexerInputStream implements AutoCloseable, Closeable, Iterator<Lexeme> {
     Scanner reader;

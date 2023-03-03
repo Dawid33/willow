@@ -1,4 +1,4 @@
-package com.dawidsobczak.ds.lang;
+package com.dawidsobczak.ds.phase_one;
 
 public enum GrammarSymbols {
     START,

@@ -1,6 +1,6 @@
 package com.dawidsobczak.ds;
 
-import com.dawidsobczak.ds.lang.*;
+import com.dawidsobczak.ds.phase_one.*;
 
 import java.io.InputStream;
 
@@ -8,7 +8,7 @@ public class Main {
     public static void main(String[] args) throws Exception {
         InputStream s = Main.class.getResourceAsStream("/test.ds");
         try (LexerInputStream lexemeStream = new LexerInputStream(s)) {
-            Parser p = new Parser(new Grammar());
+            Parser p = new Parser(GrammarBuilder.buildArithmeticGrammar());
             while(lexemeStream.hasNext()) {
                 Lexeme l = lexemeStream.next();
                 if (l != null) {

@@ -1,6 +1,6 @@
 package com.dawidsobczak.tests;
 
-import com.dawidsobczak.ds.lang.*;
+import com.dawidsobczak.ds.phase_one.*;
 import org.junit.jupiter.api.Test;
 
 import java.io.InputStream;
@@ -10,7 +10,7 @@ public class SequentialTest {
     public void a_test() throws Exception {
         InputStream s = this.getClass().getResourceAsStream("/test.ds");
         try (LexerInputStream lexemeStream = new LexerInputStream(s)) {
-            Parser p = new Parser(new Grammar());
+            Parser p = new Parser(GrammarBuilder.buildArithmeticGrammar());
             while(lexemeStream.hasNext()) {
                 Lexeme l = lexemeStream.next();
                 if (l != null) {

@@ -1,6 +1,6 @@
-package com.dawidsobczak.ds.lang;
+package com.dawidsobczak.ds.phase_one;
 
-import com.dawidsobczak.ds.lang.Parser.Associativity;
+import com.dawidsobczak.ds.phase_one.Parser.Associativity;
 
 import java.util.*;
 /*
@@ -53,58 +53,28 @@ provides it.
 */
 
 
-public class Grammar {
-    public ArrayList<GrammarSymbols> nonTerminals;
-    public ArrayList<GrammarSymbols> terminals;
-    ArrayList<Rule> rules = new ArrayList<>();
-    HashMap<GrammarSymbols, HashMap<GrammarSymbols, Associativity>> opTable = new HashMap<>();
+public class Grammar<T extends Enum<T>> {
+    public ArrayList<T> nonTerminals;
+    public ArrayList<T> terminals;
+    ArrayList<Rule<T>> rules;
+    HashMap<T, HashMap<T, Associativity>> opTable = new HashMap<>();
 
-    record Rule(GrammarSymbols left, GrammarSymbols[] right, int priority) {}
-
-    public Associativity getPrecedence(GrammarSymbols left, GrammarSymbols right) {
+    public Associativity getPrecedence(T left, T right) {
         return opTable.get(left).get(right);
     }
 
-    public Grammar() {
-        // Symbols in the grammar.
-        var plus = GrammarSymbols.PLUS;
-        var multiply = GrammarSymbols.MULTIPLY;
-        var lparen = GrammarSymbols.LPAREN;
-        var rparen = GrammarSymbols.RPAREN;
-        var delim = GrammarSymbols.DELIM;
+    public Grammar(ArrayList<Rule<T>> rules, ArrayList<T> terminals, ArrayList<T> nonTerminals) {
+        this.terminals = terminals;
+        this.nonTerminals = nonTerminals;
+        this.rules = rules;
 
-        var start = GrammarSymbols.START;
-        var program= GrammarSymbols.PROGRAM;
-        var A = GrammarSymbols.A;
-        var B = GrammarSymbols.B;
-        var term = GrammarSymbols.TERM;
-        var factor = GrammarSymbols.FACTOR;
-        var expr = GrammarSymbols.EXPR;
-        var number = GrammarSymbols.NUMBER;
+        var firstOps = new HashMap<T, Set<T>>();
+        var lastOps = new HashMap<T, Set<T>>();
 
-        this.terminals = new ArrayList<>(List.of(new GrammarSymbols[]{plus, multiply, number}));
-        this.nonTerminals = new ArrayList<>(List.of(new GrammarSymbols[]{start, A, B}));
-
-        rules.add(new Rule(start, new GrammarSymbols[]{A}, 0));
-        rules.add(new Rule(start, new GrammarSymbols[]{B}, 0));
-
-        rules.add(new Rule(A, new GrammarSymbols[]{A, plus, B}, 2));
-        rules.add(new Rule(A, new GrammarSymbols[]{B, plus, B}, 1));
-
-        rules.add(new Rule(B, new GrammarSymbols[]{B, multiply, number}, 2));
-        rules.add(new Rule(B, new GrammarSymbols[]{number}, 1));
-
-
-        var firstOps = new HashMap<GrammarSymbols, Set<GrammarSymbols>>();
-        var lastOps = new HashMap<GrammarSymbols, Set<GrammarSymbols>>();
-
-        // Build operator precedence table
-        // From Parsing Techniques, A practical Guide 2008 By Dick Grune p.288
-
-        for (Rule r : rules) {
-            if (nonTerminals.contains(r.left())) {
+        for (Rule<T> r : rules) {
+            if (nonTerminals.contains(r.left)) {
                 if (r.right.length > 0) {
-                    for (GrammarSymbols s : r.right) {
+                    for (T s : r.right) {
                         if (terminals.contains(s)) {
                             if (!firstOps.containsKey(r.left)) {
                                 firstOps.put(r.left, new HashSet<>(Set.of(s)));
@@ -135,8 +105,8 @@ public class Grammar {
         boolean didSomething;
         do {
             didSomething = false;
-            for (Rule r : rules) {
-                if (nonTerminals.contains(r.left())) {
+            for (Rule<T> r : rules) {
+                if (nonTerminals.contains(r.left)) {
                     if (r.right.length > 0) {
                         if (nonTerminals.contains(r.right[0])) {
                             if (firstOps.containsKey(r.right[0])) {
@@ -180,24 +150,22 @@ public class Grammar {
         }
         System.out.println();
 
-        HashMap<GrammarSymbols, Associativity> template = new HashMap<>();
-        var templateRow = new ArrayList<>(List.of(number, plus, multiply));
-        for (var e : templateRow) {
+        HashMap<T, Associativity> template = new HashMap<>();
+        for (T e : terminals) {
             template.put(e, Associativity.None);
         }
 
-        for (GrammarSymbols terminal : terminals) {
-            opTable.put(terminal, (HashMap<GrammarSymbols, Associativity>) template.clone());
+        for (T terminal : terminals) {
+            opTable.put(terminal, (HashMap<T, Associativity>) template.clone());
         }
 
-        for (Rule r : rules) {
+        for (Rule<T> r : rules) {
             for (int i = 0; i < r.right.length; i++) {
                 if (i + 1 < r.right.length) {
                     if (terminals.contains(r.right[i]) && terminals.contains(r.right[i + 1])) {
                         opTable.get(r.right[i]).put(r.right[i + 1], Associativity.Equal);
                     }
                     if (terminals.contains(r.right[i]) && nonTerminals.contains(r.right[i + 1])) {
-//                        System.out.println(r.right[i] + " && " + r.right[i + 1]);
                         if (firstOps.containsKey(r.right[i + 1])) {
                             var firstOpA = firstOps.get(r.right[i + 1]);
                             for (var q2 : firstOpA) {
@@ -206,12 +174,10 @@ public class Grammar {
                         }
                     }
                     if (nonTerminals.contains(r.right[i]) && terminals.contains(r.right[i + 1])) {
-//                        System.out.println(r.right[i] + " && " + r.right[i + 1]);
                         if (lastOps.containsKey(r.right[i])) {
                             var lastOpA= lastOps.get(r.right[i]);
                             for (var q2 : lastOpA) {
                                 opTable.get(q2).put(r.right[i + 1], Associativity.Right);
-//                                System.out.println(r.right[i + 1] + " > " + q2);
                             }
                         }
                     }
@@ -225,15 +191,15 @@ public class Grammar {
         }
 
         System.out.printf("%-10s", "");
-        for (GrammarSymbols row : templateRow) {
+        for (T row : terminals) {
             System.out.printf("%-10s ", row);
         }
         System.out.println();
 
-        for (GrammarSymbols row : templateRow) {
+        for (T row : terminals) {
             System.out.printf("%-10s", row);
             var currRow = opTable.get(row);
-            for (GrammarSymbols col : templateRow) {
+            for (T col : terminals) {
                 System.out.printf("%-10s ", currRow.get(col));
             }
             System.out.println();

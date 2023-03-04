@@ -1,18 +1,22 @@
 package com.dawidsobczak.ds.phase_one;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
 
 public class Parser {
-    ParseTree outputTree;
+    ParseTree<GrammarSymbols> outputTree;
     public record LexemeGrammarTuple(Lexeme lexeme, Associativity associativity) {}
+    HashMap<LexemeGrammarTuple, Node<GrammarSymbols>> openNodes = new HashMap<>();
     LinkedList<LexemeGrammarTuple> stack = new LinkedList<>();
     Grammar<GrammarSymbols> g;
     boolean shouldReconsume = false;
 
     public Parser(Grammar g) {
         this.g = g;
+        this.outputTree = new ParseTree<>(new Node<>(GrammarSymbols.PARSE_TREE_ROOT));
     }
 
     enum Associativity {
@@ -23,7 +27,7 @@ public class Parser {
         Undefined,
     }
 
-    public void consumeToken(Lexeme l) throws ParserException, IOException {
+    public void consumeToken(Lexeme l) throws ParserException {
         if (stack.isEmpty()) {
             stack.add(new LexemeGrammarTuple(l, Associativity.Left));
             return;
@@ -61,6 +65,10 @@ public class Parser {
             }
 
 
+            System.out.println("Open nodes");
+            openNodes.forEach((key, value) -> {
+                System.out.println("\t" + key.lexeme.type);
+            });
             System.out.println("Applying " + X.type + " " + precedence);
             printStack();
 
@@ -120,41 +128,21 @@ public class Parser {
     }
 
     void processTerminal(int i) {
-        for(Rule<GrammarSymbols> r : g.rules) {
-            boolean ruleApplies = true;
-            for (int j = 0; j < r.right.length; j++) {
-                GrammarSymbols curr;
-                try {
-                    curr = stack.get(i + j).lexeme.type;
-                } catch (NoSuchElementException e) {
-                    ruleApplies = false;
-                    break;
-                }
-
-                if (curr != r.right[j]) {
-                    ruleApplies = false;
-                    break;
-                }
-            }
-            if (ruleApplies) {
-                for (int j = 0; j < r.right.length; j++)
-                    stack.remove(i);
-
-                stack.add(i, new LexemeGrammarTuple(new Lexeme(r.left, null), Associativity.Undefined));
-                System.out.println("Reduce\n");
-                shouldReconsume = true;
-            }
-        }
+        reduceStack(i, 0);
     }
 
     void processNonTerminal(int i) {
+        reduceStack(i, -1);
+    }
+
+    void reduceStack(int i, int offset) {
         Rule<GrammarSymbols> rule = null;
         for (Rule<GrammarSymbols> r : g.rules) {
             boolean ruleApplies = true;
             for (int j = 0; j < r.right.length; j++) {
                 GrammarSymbols curr;
                 try {
-                    curr = stack.get(i + j - 1).lexeme.type;
+                    curr = stack.get(i + j + offset).lexeme.type;
                 } catch (IndexOutOfBoundsException e) {
                     ruleApplies = false;
                     break;
@@ -176,10 +164,24 @@ public class Parser {
             }
         }
         if (rule != null) {
-            for (int j = 0; j < rule.right.length; j++)
-                stack.remove(i - 1);
+            var parent = new Node<>(rule.left);
+            for (int j = 0; j < rule.right.length; j++) {
+                var current = stack.get(i + offset);
+                if (openNodes.containsKey(current)) {
+                    var subTree = openNodes.get(current);
+                    parent.appendChild(subTree);
+                    openNodes.remove(current);
+                } else {
+                    Node<GrammarSymbols> leaf = new Node<>(current.lexeme().type);
+                    parent.appendChild(leaf);
+                }
+                stack.remove(i + offset);
+            }
 
-            stack.add(i - 1 , new LexemeGrammarTuple(new Lexeme(rule.left, null), Associativity.Undefined));
+            var left = new LexemeGrammarTuple(new Lexeme(rule.left, null), Associativity.Undefined);
+            openNodes.put(left, parent);
+
+            stack.add(i + offset , left);
             System.out.println("Reduce\n");
             shouldReconsume = true;
         }
@@ -201,7 +203,11 @@ public class Parser {
         System.out.println();
     }
 
-    public ParseTree getParseTree() {
-        return null;
+    public ParseTree getParseTree() throws ParserException {
+        if (openNodes.size() == 1) {
+            return new ParseTree<>((Node<GrammarSymbols>) openNodes.values().toArray()[0]);
+        } else {
+            throw new ParserException("Either hasn't finished parsing input or encountered and error.");
+        }
     }
 }

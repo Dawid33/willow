@@ -60,7 +60,19 @@ public class LexerInputStream implements AutoCloseable, Closeable, Iterator<Lexe
                 }
             }
         }
-        return null;
+
+        if (!buf.isEmpty()) {
+            if (state == LexerState.IN_NUMBER) {
+                Lexeme l = new Lexeme(GrammarSymbols.NUMBER, buf.toString());
+                buf.setLength(0);
+                state = LexerState.DATA;
+                return l;
+            } else {
+                throw new LexerException("Lexer has data to output but no valid state.");
+            }
+        } else {
+            return null;
+        }
     }
 
     @Override

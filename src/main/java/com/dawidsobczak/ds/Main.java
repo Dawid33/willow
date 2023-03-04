@@ -11,15 +11,13 @@ public class Main {
             Parser p = new Parser(GrammarBuilder.buildArithmeticGrammar());
             while(lexemeStream.hasNext()) {
                 Lexeme l = lexemeStream.next();
-                if (l != null) {
-                    p.consumeToken(l);
-                }
+                p.consumeToken(l);
             }
             p.consumeToken(new Lexeme(GrammarSymbols.DELIM, null));
             p.printStack();
 
             ParseTree tree = p.getParseTree();
-
+            System.out.println(tree);
         } catch (LexerException e) {
             throw e;
         }

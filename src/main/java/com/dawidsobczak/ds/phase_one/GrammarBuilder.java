@@ -25,14 +25,14 @@ public class GrammarBuilder {
         var terminals = new ArrayList<>(List.of(new GrammarSymbols[]{number, plus, multiply}));
         var nonTerminals = new ArrayList<>(List.of(new GrammarSymbols[]{start, A, B}));
 
-        rules.add(new Rule<>(start, new GrammarSymbols[]{A}, 0));
-        rules.add(new Rule<>(start, new GrammarSymbols[]{B}, 0));
+        rules.add(new Rule<>(start, new GrammarSymbols[]{A}, 2));
+        rules.add(new Rule<>(start, new GrammarSymbols[]{B}, 1));
 
-        rules.add(new Rule<>(A, new GrammarSymbols[]{A, plus, B}, 2));
-        rules.add(new Rule<>(A, new GrammarSymbols[]{B, plus, B}, 1));
+        rules.add(new Rule<>(A, new GrammarSymbols[]{A, plus, B}, 3));
+        rules.add(new Rule<>(A, new GrammarSymbols[]{B, plus, B}, 2));
 
-        rules.add(new Rule<>(B, new GrammarSymbols[]{B, multiply, number}, 2));
-        rules.add(new Rule<>(B, new GrammarSymbols[]{number}, 1));
+        rules.add(new Rule<>(B, new GrammarSymbols[]{B, multiply, number}, 3));
+        rules.add(new Rule<>(B, new GrammarSymbols[]{number}, 2));
 
         return new Grammar<>(rules, terminals, nonTerminals);
     }

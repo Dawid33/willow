@@ -43,7 +43,6 @@ public class ParseTree<T> {
                 }
                 current_child -= 1;
             }
-            System.out.println();
         }
         return b.toString();
     }

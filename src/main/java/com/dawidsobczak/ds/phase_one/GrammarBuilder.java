@@ -35,20 +35,18 @@ public class GrammarBuilder {
         rules.add(new Rule<>(start, new JsonGrammarSymbols[]{object}, 1));
 
         rules.add(new Rule<>(object, new JsonGrammarSymbols[]{lcurly, rcurly}, 4));
-        rules.add(new Rule<>(object, new JsonGrammarSymbols[]{lcurly, members, rcurly}, 3));
+        rules.add(new Rule<>(object, new JsonGrammarSymbols[]{lcurly, pair, rcurly}, 3));
 
-        rules.add(new Rule<>(members, new JsonGrammarSymbols[]{pair}, 5));
+        rules.add(new Rule<>(members, new JsonGrammarSymbols[]{pair}, 4));
         rules.add(new Rule<>(members, new JsonGrammarSymbols[]{pair, comma, members}, 4));
 
-        rules.add(new Rule<>(pair, new JsonGrammarSymbols[]{string, colon, number}, 21));
-        rules.add(new Rule<>(pair, new JsonGrammarSymbols[]{string, colon, string}, 21));
-        rules.add(new Rule<>(pair, new JsonGrammarSymbols[]{string, colon, object}, 21));
+        rules.add(new Rule<>(pair, new JsonGrammarSymbols[]{string, colon, value}, 21));
 
-//        rules.add(new Rule<>(value, new JsonGrammarSymbols[]{string}, 10));
-//        rules.add(new Rule<>(value, new JsonGrammarSymbols[]{number}, 9));
-//        rules.add(new Rule<>(value, new JsonGrammarSymbols[]{object}, 8));
-//        rules.add(new Rule<>(value, new JsonGrammarSymbols[]{array}, 7));
-//        rules.add(new Rule<>(value, new JsonGrammarSymbols[]{bool}, 6));
+        rules.add(new Rule<>(value, new JsonGrammarSymbols[]{string}, 10));
+        rules.add(new Rule<>(value, new JsonGrammarSymbols[]{number}, 9));
+        rules.add(new Rule<>(value, new JsonGrammarSymbols[]{object}, 8));
+        rules.add(new Rule<>(value, new JsonGrammarSymbols[]{array}, 7));
+        rules.add(new Rule<>(value, new JsonGrammarSymbols[]{bool}, 6));
 
         rules.add(new Rule<>(string, new JsonGrammarSymbols[]{lquote, lquote}, 12));
         rules.add(new Rule<>(string, new JsonGrammarSymbols[]{lquote, chars, lquote}, 11));

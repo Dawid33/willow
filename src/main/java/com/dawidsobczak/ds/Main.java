@@ -18,6 +18,7 @@ public class Main {
             p.printStack();
 
             ParseTree<JsonGrammarSymbols> tree = p.getParseTree();
+            System.out.println();
             System.out.println(tree);
         } catch (LexerException e) {
             throw e;

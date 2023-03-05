@@ -1,7 +1,7 @@
 package com.dawidsobczak.ds.phase_one;
 
 public final class Lexeme<T extends Enum<T>> {
-    public final T type;
+    public T type;
     public final String content;
 
     public Lexeme(T type, String content) {

@@ -7,8 +7,10 @@ import java.util.*;
 public class Grammar<T extends Enum<T>> {
     public ArrayList<T> nonTerminals;
     public ArrayList<T> terminals;
-    ArrayList<Rule<T>> rules;
+    public T delim;
+    public HashMap<T, ArrayList<T>> inverseRewriteRules;
     T axiom;
+    ArrayList<Rule<T>> rules;
     HashMap<T, HashMap<T, Associativity>> opTable = new HashMap<>();
 
     public Associativity getPrecedence(T left, T right) {
@@ -16,16 +18,54 @@ public class Grammar<T extends Enum<T>> {
     }
 
     void checkAndFixGrammar() throws GrammarException {
-
     }
 
-    public Grammar(ArrayList<Rule<T>> rules, ArrayList<T> terminals, ArrayList<T> nonTerminals, T axiom) throws GrammarException {
+    public Grammar(ArrayList<Rule<T>> rules, ArrayList<T> terminals, ArrayList<T> nonTerminals, T axiom, T delim) throws GrammarException {
         this.terminals = terminals;
         this.nonTerminals = nonTerminals;
         this.rules = rules;
         this.axiom = axiom;
+        this.delim = delim;
 
-        checkAndFixGrammar();
+        // Create re-write rules
+        // TODO : Figure out how this actually works.
+        HashMap<T, ArrayList<T>> rewriteRules = new HashMap<>();
+        for (T nonTerminal : nonTerminals) {
+            rewriteRules.put(nonTerminal, new ArrayList<>());
+        }
+        boolean modified = true;
+        while (modified) {
+            modified = false;
+            for (Rule<T> r : rules) {
+                T token = r.right[0];
+                if (r.right.length != 1 || terminals.contains(token)) {
+                    continue;
+                }
+                if (!rewriteRules.get(r.left).contains(token)) {
+                    modified = true;
+                    rewriteRules.get(r.left).add(token);
+                } else {
+                    for (T ttoken : rewriteRules.get(token)) {
+                        if (!rewriteRules.get(r.left).contains(ttoken)) {
+                            modified = true;
+                            rewriteRules.get(r.left).add(ttoken);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Create inverse rewrite rules
+        // TODO: Figure out what this is.
+        inverseRewriteRules = new HashMap<>();
+        for (T t : nonTerminals) {
+            inverseRewriteRules.put(t, new ArrayList<>(List.of(t)));
+        }
+        for (T t : nonTerminals) {
+            for (T t1 : rewriteRules.get(t)) {
+                inverseRewriteRules.get(t1).add(t);
+            }
+        }
 
         var firstOps = new HashMap<T, Set<T>>();
         var lastOps = new HashMap<T, Set<T>>();

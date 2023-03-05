@@ -9,13 +9,11 @@ public class Parser<T extends Enum<T>> {
     HashMap<LexemeGrammarTuple<T>, Node<T>> openNodes = new HashMap<>();
     LinkedList<LexemeGrammarTuple<T>> stack = new LinkedList<>();
     Grammar<T> g;
-    T delim;
     boolean shouldReconsume = false;
 
-    public Parser(Grammar<T> g, T delim) {
+    public Parser(Grammar<T> g) {
         this.g = g;
         this.outputTree = null;
-        this.delim = delim;
     }
 
     enum Associativity {
@@ -39,7 +37,7 @@ public class Parser<T extends Enum<T>> {
             shouldReconsume = false;
 
             if (stack.size() == 1) {
-                if (stack.get(0).associativity == Associativity.Undefined && l.type == delim) {
+                if (stack.get(0).associativity == Associativity.Undefined && l.type == g.delim) {
                     System.out.println("Done");
                     return;
                 }
@@ -57,7 +55,7 @@ public class Parser<T extends Enum<T>> {
             }
 
             Associativity precedence;
-            if (X.type == delim) {
+            if (X.type == g.delim) {
                 precedence = Associativity.Right;
             } else {
                 precedence = g.getPrecedence(Y.lexeme.type, X.type);
@@ -107,9 +105,9 @@ public class Parser<T extends Enum<T>> {
                 } else {
                     LexemeGrammarTuple<T> XiMinusOne = null;
                     boolean isDelim = false;
-                    try {
+                    if (i - 1 >= 0) {
                         XiMinusOne = stack.get(i - 1);
-                    } catch (IndexOutOfBoundsException e) {
+                    } else {
                         isDelim = true;
                     }
 
@@ -139,33 +137,69 @@ public class Parser<T extends Enum<T>> {
 
     void reduceStack(int i, int offset) {
         Rule<T> rule = null;
+        HashMap<T, T> applyRewrites = new HashMap<>();
+        int longest = 0;
         for (Rule<T> r : g.rules) {
+            HashMap<T, T> rewrites = new HashMap<>();
             boolean ruleApplies = true;
             for (int j = 0; j < r.right.length; j++) {
                 T curr;
-                try {
+                if (i + j + offset >= 0 && i + j + offset < stack.size()) {
                     curr = stack.get(i + j + offset).lexeme.type;
-                } catch (IndexOutOfBoundsException e) {
+                } else {
                     ruleApplies = false;
                     break;
                 }
 
-                if (curr != r.right[j]) {
+                if (g.nonTerminals.contains(curr)) {
+                    boolean rewriteApplies = false;
+                    T token = null;
+                    for (T t : g.inverseRewriteRules.get(curr)) {
+                        if (t == r.right[j])  {
+                            rewriteApplies = true;
+                            token = t;
+                        }
+                    }
+                    if (rewriteApplies) {
+                        rewrites.put(r.right[j], token);
+                    } else {
+                        ruleApplies = false;
+                    }
+                } else if (curr != r.right[j]) {
                     ruleApplies = false;
                     break;
                 }
             }
             if (ruleApplies) {
-                if (rule != null) {
-                    if (r.priority > rule.priority) {
+                if (r.right.length > longest) {
+                    longest = r.right.length;
+
+                    if (rewrites.isEmpty()) {
                         rule = r;
+                    } else {
+                        rule = r;
+                        applyRewrites = (HashMap<T, T>) rewrites.clone();
+                        rewrites.clear();
                     }
-                } else {
-                    rule = r;
                 }
             }
         }
+
         if (rule != null) {
+           if (!applyRewrites.isEmpty()) {
+               for (int j = 0; j < rule.right.length; j++) {
+                   LexemeGrammarTuple<T> current = stack.get(i + offset);
+                   T token = applyRewrites.get(current.lexeme.type);
+                   if (token != null) {
+                       current.lexeme.type = token;
+
+                       if (openNodes.containsKey(current)){
+                           openNodes.get(current).symbol = token;
+                       }
+                   }
+               }
+           }
+
             var parent = new Node<>(rule.left);
             for (int j = 0; j < rule.right.length; j++) {
                 var current = stack.get(i + offset);

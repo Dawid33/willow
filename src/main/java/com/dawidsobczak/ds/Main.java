@@ -8,7 +8,7 @@ public class Main {
     public static void main(String[] args) throws Exception {
         InputStream s = Main.class.getResourceAsStream("/test.ds");
         try (JsonLexerInputStream lexemeStream = new JsonLexerInputStream(s)) {
-            Parser<JsonGrammarSymbols> p = new Parser<>(GrammarBuilder.buildGrammar(), JsonGrammarSymbols.DELIM);
+            Parser<JsonGrammarSymbols> p = new Parser<>(GrammarBuilder.buildGrammar());
             while(lexemeStream.hasNext()) {
                 Lexeme<JsonGrammarSymbols> l = lexemeStream.next();
                 System.out.println("LEXER : " + l.type);

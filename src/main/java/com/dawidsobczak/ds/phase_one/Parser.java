@@ -200,7 +200,7 @@ public class Parser<T extends Enum<T>> {
                }
            }
 
-            var parent = new Node<>(rule.left);
+            var parent = new Node<>(rule.left, null);
             for (int j = 0; j < rule.right.length; j++) {
                 var current = stack.get(i + offset);
                 if (openNodes.containsKey(current)) {
@@ -208,7 +208,12 @@ public class Parser<T extends Enum<T>> {
                     parent.appendChild(subTree);
                     openNodes.remove(current);
                 } else {
-                    Node<T> leaf = new Node<>(current.lexeme().type);
+                    Node<T> leaf;
+                    if (current.lexeme.content != null) {
+                        leaf = new Node<>(current.lexeme().type, current.lexeme.content);
+                    } else {
+                        leaf = new Node<>(current.lexeme().type, null);
+                    }
                     parent.appendChild(leaf);
                 }
                 stack.remove(i + offset);

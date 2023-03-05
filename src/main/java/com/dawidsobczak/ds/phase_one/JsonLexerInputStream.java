@@ -13,9 +13,11 @@ public class JsonLexerInputStream implements AutoCloseable, Closeable, Iterator<
     StringBuffer buf = new StringBuffer();
     Character c;
     boolean reconsume = false;
+    boolean exitingString = false;
 
     public enum LexerState {
         DATA,
+        IN_STRING,
         IN_NUMBER,
     }
 
@@ -32,9 +34,7 @@ public class JsonLexerInputStream implements AutoCloseable, Closeable, Iterator<
 
     @Override
     public Lexeme<JsonGrammarSymbols> next() throws NoSuchElementException {
-        JsonGrammarSymbols shouldBuild = null;
         Lexeme<JsonGrammarSymbols> l = null;
-        boolean isLast = false;
         while (c != null || reconsume) {
             reconsume = false;
             if (state == LexerState.DATA) {
@@ -56,6 +56,11 @@ public class JsonLexerInputStream implements AutoCloseable, Closeable, Iterator<
                 } else if (c == ']') {
                     l = new Lexeme<>(JsonGrammarSymbols.RIGHT_SQUARE_BRACKET, null);
                 } else if (c == '\"') {
+                    if (exitingString) {
+                        exitingString = false;
+                    } else {
+                        state = LexerState.IN_STRING;
+                    }
                     l = new Lexeme<>(JsonGrammarSymbols.QUOTE, null);
                 } else if (!Character.isWhitespace(c)) {
                     throw new LexerException("Unrecognized char");
@@ -70,7 +75,17 @@ public class JsonLexerInputStream implements AutoCloseable, Closeable, Iterator<
                 } else {
                     throw new LexerException("Incorrect character in number.");
                 }
+            } else if (state == LexerState.IN_STRING) {
+                if (c == '\"') {
+                    state = LexerState.DATA;
+                    reconsume = true;
+                    l = buildFromBuffer(JsonGrammarSymbols.CHARACTER);
+                    exitingString = true;
+                } else {
+                    buf.append(c);
+                }
             }
+
             if (!reconsume) {
                 if (reader.hasNext()) {
                     c = reader.next().charAt(0);

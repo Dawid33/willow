@@ -27,9 +27,19 @@ public class ParseTree<T> {
                     }
                 }
                 if (current_child != 0) {
-                    b.append("├─").append(current.children.get(current_child)).append("\n");
+                    b.append("├─").append(current.children.get(current_child));
+                    if (current.children.get((current_child)).content != null) {
+                        b.append(" = \"" + current.children.get((current_child)).content + "\"\n");
+                    } else {
+                        b.append("\n");
+                    }
                 } else {
-                    b.append("└─").append(current.children.get(current_child)).append("\n");
+                    b.append("└─").append(current.children.get(current_child));
+                    if (current.children.get((current_child)).content != null) {
+                        b.append(" = \"" + current.children.get((current_child)).content + "\"\n");
+                    } else {
+                        b.append("\n");
+                    }
                 }
                 if (!current.children.get(current_child).children.isEmpty()) {
                     nodeStack.push(current);

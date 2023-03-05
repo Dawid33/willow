@@ -20,7 +20,7 @@ public enum JsonGrammarSymbols {
     COLON,
     NUMBER,
     BOOL,
-    LEFT_QUOTE,
+    QUOTE,
     RIGHT_QUOTE,
     LEFT_SQUARE_BRACKET,
     RIGHT_SQUARE_BRACKET,

@@ -25,42 +25,41 @@ public class GrammarBuilder {
         var lSqrBracket= JsonGrammarSymbols.LEFT_SQUARE_BRACKET;
         var number = JsonGrammarSymbols.NUMBER;
         var bool = JsonGrammarSymbols.BOOL;
-        var lquote= JsonGrammarSymbols.LEFT_QUOTE;
-        var rquote= JsonGrammarSymbols.RIGHT_QUOTE;
+        var quote= JsonGrammarSymbols.QUOTE;
         var character = JsonGrammarSymbols.CHARACTER;
 
-        var terminals = new ArrayList<>(List.of(new JsonGrammarSymbols[]{comma, colon, rcurly, lcurly, number, bool,lquote, character}));
+        var terminals = new ArrayList<>(List.of(new JsonGrammarSymbols[]{comma, colon, rcurly, lcurly, number, bool, quote, character}));
         var nonTerminals = new ArrayList<>(List.of(new JsonGrammarSymbols[]{start, object, members, pair, string, value, array, elements, chars}));
 
-        rules.add(new Rule<>(start, new JsonGrammarSymbols[]{object}, 1));
+        rules.add(new Rule<>(start, new JsonGrammarSymbols[]{object}, 0));
 
-        rules.add(new Rule<>(object, new JsonGrammarSymbols[]{lcurly, rcurly}, 4));
-        rules.add(new Rule<>(object, new JsonGrammarSymbols[]{lcurly, pair, rcurly}, 3));
+        rules.add(new Rule<>(object, new JsonGrammarSymbols[]{lcurly, rcurly}, 0));
+        rules.add(new Rule<>(object, new JsonGrammarSymbols[]{lcurly, members, rcurly}, 0));
 
-        rules.add(new Rule<>(members, new JsonGrammarSymbols[]{pair}, 4));
-        rules.add(new Rule<>(members, new JsonGrammarSymbols[]{pair, comma, members}, 4));
+        rules.add(new Rule<>(members, new JsonGrammarSymbols[]{pair}, 0));
+        rules.add(new Rule<>(members, new JsonGrammarSymbols[]{pair, comma, members}, 0));
 
-        rules.add(new Rule<>(pair, new JsonGrammarSymbols[]{string, colon, value}, 21));
+        rules.add(new Rule<>(pair, new JsonGrammarSymbols[]{string, colon, value}, 0));
 
-        rules.add(new Rule<>(value, new JsonGrammarSymbols[]{string}, 10));
-        rules.add(new Rule<>(value, new JsonGrammarSymbols[]{number}, 9));
-        rules.add(new Rule<>(value, new JsonGrammarSymbols[]{object}, 8));
-        rules.add(new Rule<>(value, new JsonGrammarSymbols[]{array}, 7));
-        rules.add(new Rule<>(value, new JsonGrammarSymbols[]{bool}, 6));
+        rules.add(new Rule<>(value, new JsonGrammarSymbols[]{string}, 0));
+        rules.add(new Rule<>(value, new JsonGrammarSymbols[]{number}, 0));
+        rules.add(new Rule<>(value, new JsonGrammarSymbols[]{object}, 0));
+        rules.add(new Rule<>(value, new JsonGrammarSymbols[]{array}, 0));
+        rules.add(new Rule<>(value, new JsonGrammarSymbols[]{bool}, 0));
 
-        rules.add(new Rule<>(string, new JsonGrammarSymbols[]{lquote, lquote}, 12));
-        rules.add(new Rule<>(string, new JsonGrammarSymbols[]{lquote, chars, lquote}, 11));
+        rules.add(new Rule<>(string, new JsonGrammarSymbols[]{quote, quote}, 0));
+        rules.add(new Rule<>(string, new JsonGrammarSymbols[]{quote, chars, quote}, 0));
 
-//        rules.add(new Rule<>(array, new JsonGrammarSymbols[]{lSqrBracket, rSqrBracket}, 14));
-//        rules.add(new Rule<>(array, new JsonGrammarSymbols[]{lSqrBracket, elements, rSqrBracket}, 13));
+        rules.add(new Rule<>(array, new JsonGrammarSymbols[]{lSqrBracket, rSqrBracket}, 0));
+        rules.add(new Rule<>(array, new JsonGrammarSymbols[]{lSqrBracket, elements, rSqrBracket}, 0));
 
-        rules.add(new Rule<>(elements, new JsonGrammarSymbols[]{value}, 16));
-        rules.add(new Rule<>(elements, new JsonGrammarSymbols[]{value, comma, elements}, 15));
+        rules.add(new Rule<>(elements, new JsonGrammarSymbols[]{value}, 0));
+        rules.add(new Rule<>(elements, new JsonGrammarSymbols[]{value, comma, elements}, 0));
 
-        rules.add(new Rule<>(chars, new JsonGrammarSymbols[]{character}, 19));
-        rules.add(new Rule<>(chars, new JsonGrammarSymbols[]{character, chars}, 20));
+        rules.add(new Rule<>(chars, new JsonGrammarSymbols[]{character}, 0));
+        rules.add(new Rule<>(chars, new JsonGrammarSymbols[]{character, chars}, 0));
 
-        return new Grammar<>(rules, terminals, nonTerminals);
+        return new Grammar<>(rules, terminals, nonTerminals, start);
     }
     public static Grammar<ArithemticGrammarSymbols> buildArithmeticGrammar() {
         ArrayList<Rule<ArithemticGrammarSymbols>> rules = new ArrayList<>();
@@ -85,6 +84,6 @@ public class GrammarBuilder {
         rules.add(new Rule<>(B, new ArithemticGrammarSymbols[]{B, multiply, number}, 3));
         rules.add(new Rule<>(B, new ArithemticGrammarSymbols[]{number}, 2));
 
-        return new Grammar<>(rules, terminals, nonTerminals);
+        return new Grammar<>(rules, terminals, nonTerminals, st);
     }
 }

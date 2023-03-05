@@ -56,7 +56,7 @@ public class JsonLexerInputStream implements AutoCloseable, Closeable, Iterator<
                 } else if (c == ']') {
                     l = new Lexeme<>(JsonGrammarSymbols.RIGHT_SQUARE_BRACKET, null);
                 } else if (c == '\"') {
-                    l = new Lexeme<>(JsonGrammarSymbols.LEFT_QUOTE, null);
+                    l = new Lexeme<>(JsonGrammarSymbols.QUOTE, null);
                 } else if (!Character.isWhitespace(c)) {
                     throw new LexerException("Unrecognized char");
                 }

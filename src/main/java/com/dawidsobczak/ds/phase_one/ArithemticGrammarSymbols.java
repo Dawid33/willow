@@ -1,15 +1,14 @@
 package com.dawidsobczak.ds.phase_one;
 
-public enum GrammarSymbols {
+public enum ArithemticGrammarSymbols {
     // Other
     PARSE_TREE_ROOT,
 
     // Nonterminals
     START,
-    PROGRAM,
-    EXPR,
-    TERM,
-    FACTOR,
+    DELIM,
+    A,
+    B,
 
     // Terminals
     PLUS,
@@ -17,7 +16,4 @@ public enum GrammarSymbols {
     NUMBER,
     LPAREN,
     RPAREN,
-    DELIM,
-    A,
-    B,
 }

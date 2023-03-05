@@ -7,16 +7,17 @@ import java.io.InputStream;
 public class Main {
     public static void main(String[] args) throws Exception {
         InputStream s = Main.class.getResourceAsStream("/test.ds");
-        try (LexerInputStream lexemeStream = new LexerInputStream(s)) {
-            Parser p = new Parser(GrammarBuilder.buildArithmeticGrammar());
+        try (JsonLexerInputStream lexemeStream = new JsonLexerInputStream(s)) {
+            Parser<JsonGrammarSymbols> p = new Parser<>(GrammarBuilder.buildGrammar(), JsonGrammarSymbols.DELIM);
             while(lexemeStream.hasNext()) {
-                Lexeme l = lexemeStream.next();
+                Lexeme<JsonGrammarSymbols> l = lexemeStream.next();
+                System.out.println("LEXER : " + l.type);
                 p.consumeToken(l);
             }
-            p.consumeToken(new Lexeme(GrammarSymbols.DELIM, null));
+            p.consumeToken(new Lexeme<>(JsonGrammarSymbols.DELIM, null));
             p.printStack();
 
-            ParseTree tree = p.getParseTree();
+            ParseTree<JsonGrammarSymbols> tree = p.getParseTree();
             System.out.println(tree);
         } catch (LexerException e) {
             throw e;

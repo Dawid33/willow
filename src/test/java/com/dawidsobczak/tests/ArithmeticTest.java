@@ -5,10 +5,10 @@ import org.junit.jupiter.api.Test;
 
 import java.io.InputStream;
 
-public class SequentialTest {
+public class ArithmeticTest {
     @Test
     public void test() throws Exception {
-        InputStream s = this.getClass().getResourceAsStream("/test.ds");
+        InputStream s = this.getClass().getResourceAsStream("/arithmetic.txt");
         try (ArithemticLexerInputStream lexemeStream = new ArithemticLexerInputStream(s)) {
             Parser p = new Parser(GrammarBuilder.buildArithmeticGrammar());
             while(lexemeStream.hasNext()) {
@@ -21,6 +21,7 @@ public class SequentialTest {
             p.printStack();
 
             ParseTree tree = p.getParseTree();
+            System.out.println(tree);
 
         } catch (LexerException e) {
             throw e;

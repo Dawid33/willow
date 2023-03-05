@@ -1,10 +1,10 @@
 package com.dawidsobczak.ds.phase_one;
 
-public final class Lexeme {
-    public final GrammarSymbols type;
+public final class Lexeme<T extends Enum<T>> {
+    public final T type;
     public final String content;
 
-    public Lexeme(GrammarSymbols type, String content) {
+    public Lexeme(T type, String content) {
         this.type = type;
         this.content = content;
     }

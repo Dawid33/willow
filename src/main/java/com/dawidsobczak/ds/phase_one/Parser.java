@@ -1,22 +1,21 @@
 package com.dawidsobczak.ds.phase_one;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.NoSuchElementException;
 
-public class Parser {
-    ParseTree<GrammarSymbols> outputTree;
-    public record LexemeGrammarTuple(Lexeme lexeme, Associativity associativity) {}
-    HashMap<LexemeGrammarTuple, Node<GrammarSymbols>> openNodes = new HashMap<>();
-    LinkedList<LexemeGrammarTuple> stack = new LinkedList<>();
-    Grammar<GrammarSymbols> g;
+public class Parser<T extends Enum<T>> {
+    ParseTree<T> outputTree;
+    public record LexemeGrammarTuple<T extends Enum<T>>(Lexeme<T> lexeme, Associativity associativity) {}
+    HashMap<LexemeGrammarTuple<T>, Node<T>> openNodes = new HashMap<>();
+    LinkedList<LexemeGrammarTuple<T>> stack = new LinkedList<>();
+    Grammar<T> g;
+    T delim;
     boolean shouldReconsume = false;
 
-    public Parser(Grammar g) {
+    public Parser(Grammar<T> g, T delim) {
         this.g = g;
-        this.outputTree = new ParseTree<>(new Node<>(GrammarSymbols.PARSE_TREE_ROOT));
+        this.outputTree = null;
+        this.delim = delim;
     }
 
     enum Associativity {
@@ -27,9 +26,9 @@ public class Parser {
         Undefined,
     }
 
-    public void consumeToken(Lexeme l) throws ParserException {
+    public void consumeToken(Lexeme<T> l) throws ParserException {
         if (stack.isEmpty()) {
-            stack.add(new LexemeGrammarTuple(l, Associativity.Left));
+            stack.add(new LexemeGrammarTuple<>(l, Associativity.Left));
             return;
         }
 
@@ -40,30 +39,33 @@ public class Parser {
             shouldReconsume = false;
 
             if (stack.size() == 1) {
-                if (stack.get(0).associativity == Associativity.Undefined && l.type == GrammarSymbols.DELIM) {
+                if (stack.get(0).associativity == Associativity.Undefined && l.type == delim) {
                     System.out.println("Done");
                     return;
                 }
             }
 
-            LexemeGrammarTuple Y = null;
-            for (LexemeGrammarTuple element : stack) {
+            LexemeGrammarTuple<T> Y = null;
+            for (LexemeGrammarTuple<T> element : stack) {
                 if(g.terminals.contains(element.lexeme.type)) {
                     Y = element;
                 }
             }
             if (Y == null) {
-                stack.add(new LexemeGrammarTuple(l, Associativity.Left));
+                stack.add(new LexemeGrammarTuple<>(l, Associativity.Left));
                 return;
             }
 
             Associativity precedence;
-            if (X.type == GrammarSymbols.DELIM) {
+            if (X.type == delim) {
                 precedence = Associativity.Right;
             } else {
                 precedence = g.getPrecedence(Y.lexeme.type, X.type);
             }
 
+            if (precedence == Associativity.None) {
+                throw new ParserException("No precedence == user grammar error.");
+            }
 
             System.out.println("Open nodes");
             openNodes.forEach((key, value) -> {
@@ -73,19 +75,19 @@ public class Parser {
             printStack();
 
             if (precedence == Associativity.Left) {
-                stack.add(new LexemeGrammarTuple(X, Associativity.Left));
+                stack.add(new LexemeGrammarTuple<>(X, Associativity.Left));
                 System.out.println("Append\n");
                 return;
             }
 
             if (precedence == Associativity.Equal) {
-                stack.add(new LexemeGrammarTuple(X, Associativity.Equal));
+                stack.add(new LexemeGrammarTuple<>(X, Associativity.Equal));
                 System.out.println("Append\n");
                 return;
             }
 
             if (g.nonTerminals.contains(X.type)) {
-                stack.add(new LexemeGrammarTuple(X, Associativity.Undefined));
+                stack.add(new LexemeGrammarTuple<>(X, Associativity.Undefined));
                 System.out.println("Append\n");
                 return;
             }
@@ -99,11 +101,11 @@ public class Parser {
                 }
 
                 if (i < 0) {
-                    stack.add(new LexemeGrammarTuple(X, Associativity.Right));
+                    stack.add(new LexemeGrammarTuple<>(X, Associativity.Right));
                     System.out.println("Append\n");
                     return;
                 } else {
-                    LexemeGrammarTuple XiMinusOne = null;
+                    LexemeGrammarTuple<T> XiMinusOne = null;
                     boolean isDelim = false;
                     try {
                         XiMinusOne = stack.get(i - 1);
@@ -136,11 +138,11 @@ public class Parser {
     }
 
     void reduceStack(int i, int offset) {
-        Rule<GrammarSymbols> rule = null;
-        for (Rule<GrammarSymbols> r : g.rules) {
+        Rule<T> rule = null;
+        for (Rule<T> r : g.rules) {
             boolean ruleApplies = true;
             for (int j = 0; j < r.right.length; j++) {
-                GrammarSymbols curr;
+                T curr;
                 try {
                     curr = stack.get(i + j + offset).lexeme.type;
                 } catch (IndexOutOfBoundsException e) {
@@ -172,13 +174,13 @@ public class Parser {
                     parent.appendChild(subTree);
                     openNodes.remove(current);
                 } else {
-                    Node<GrammarSymbols> leaf = new Node<>(current.lexeme().type);
+                    Node<T> leaf = new Node<>(current.lexeme().type);
                     parent.appendChild(leaf);
                 }
                 stack.remove(i + offset);
             }
 
-            var left = new LexemeGrammarTuple(new Lexeme(rule.left, null), Associativity.Undefined);
+            var left = new LexemeGrammarTuple<>(new Lexeme<>(rule.left, null), Associativity.Undefined);
             openNodes.put(left, parent);
 
             stack.add(i + offset , left);
@@ -188,7 +190,7 @@ public class Parser {
     }
 
     public void printStack() {
-        for (LexemeGrammarTuple i : stack) {
+        for (LexemeGrammarTuple<T> i : stack) {
             char x = '!';
             if (i.associativity == Associativity.Left)
                 x = '<';
@@ -203,9 +205,9 @@ public class Parser {
         System.out.println();
     }
 
-    public ParseTree getParseTree() throws ParserException {
+    public ParseTree<T> getParseTree() throws ParserException {
         if (openNodes.size() == 1) {
-            return new ParseTree<>((Node<GrammarSymbols>) openNodes.values().toArray()[0]);
+            return new ParseTree<>((Node<T>) openNodes.values().toArray()[0]);
         } else {
             throw new ParserException("Either hasn't finished parsing input or encountered and error.");
         }

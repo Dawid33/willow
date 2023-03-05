@@ -7,7 +7,7 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
-public class LexerInputStream implements AutoCloseable, Closeable, Iterator<Lexeme> {
+public class JsonLexerInputStream implements AutoCloseable, Closeable, Iterator<Lexeme> {
     Scanner reader;
     public LexerState state = LexerState.DATA;
     StringBuffer buf = new StringBuffer();
@@ -18,7 +18,7 @@ public class LexerInputStream implements AutoCloseable, Closeable, Iterator<Lexe
         IN_NUMBER,
     }
 
-    public LexerInputStream(InputStream s) {
+    public JsonLexerInputStream(InputStream s) {
         this.reader = new Scanner(s);
         reader.useDelimiter("");
     }
@@ -29,21 +29,29 @@ public class LexerInputStream implements AutoCloseable, Closeable, Iterator<Lexe
     }
 
     @Override
-    public Lexeme next() throws NoSuchElementException {
+    public Lexeme<JsonGrammarSymbols> next() throws NoSuchElementException {
         while (reader.hasNext()) {
             char c = reader.next().charAt(0);
             if (state == LexerState.DATA) {
                 if (Character.isDigit(c)) {
                     buf.append(c);
                     state = LexerState.IN_NUMBER;
-                } else if (c == '+') {
-                    return new Lexeme(GrammarSymbols.PLUS, null);
-                } else if (c == '*') {
-                    return new Lexeme(GrammarSymbols.MULTIPLY, null);
-                } else if (c == '(') {
-                    return new Lexeme(GrammarSymbols.LPAREN, null);
-                } else if (c == ')') {
-                    return new Lexeme(GrammarSymbols.RPAREN, null);
+                } else if (Character.isAlphabetic(c)) {
+                    return new Lexeme<>(JsonGrammarSymbols.CHARACTER, null);
+                } else if (c == '{') {
+                    return new Lexeme<>(JsonGrammarSymbols.LEFT_CURLY, null);
+                } else if (c == '}') {
+                    return new Lexeme<>(JsonGrammarSymbols.RIGHT_CURLY, null);
+                } else if (c == ',') {
+                    return new Lexeme<>(JsonGrammarSymbols.COMMA, null);
+                } else if (c == ':') {
+                    return new Lexeme<>(JsonGrammarSymbols.COLON, null);
+                } else if (c == '[') {
+                    return new Lexeme<>(JsonGrammarSymbols.LEFT_SQUARE_BRACKET, null);
+                } else if (c == ']') {
+                    return new Lexeme<>(JsonGrammarSymbols.RIGHT_SQUARE_BRACKET, null);
+                } else if (c == '\"') {
+                    return new Lexeme<>(JsonGrammarSymbols.LEFT_QUOTE, null);
                 } else if (!Character.isWhitespace(c)) {
                     throw new LexerException("Unrecognized char");
                 }
@@ -51,10 +59,7 @@ public class LexerInputStream implements AutoCloseable, Closeable, Iterator<Lexe
                 if (Character.isDigit(c)) {
                     buf.append(c);
                 } else if (Character.isWhitespace(c) || c == '+' || c == '-' || c == '*' || c == '/' || c == '(' || c == ')') {
-                    Lexeme l = new Lexeme(GrammarSymbols.NUMBER, buf.toString());
-                    buf.setLength(0);
-                    state = LexerState.DATA;
-                    return l;
+                    return buildFromBuffer(JsonGrammarSymbols.NUMBER);
                 } else {
                     throw new LexerException("Incorrect character in number.");
                 }
@@ -63,16 +68,20 @@ public class LexerInputStream implements AutoCloseable, Closeable, Iterator<Lexe
 
         if (!buf.isEmpty()) {
             if (state == LexerState.IN_NUMBER) {
-                Lexeme l = new Lexeme(GrammarSymbols.NUMBER, buf.toString());
-                buf.setLength(0);
-                state = LexerState.DATA;
-                return l;
+                return buildFromBuffer(JsonGrammarSymbols.NUMBER);
             } else {
                 throw new LexerException("Lexer has data to output but no valid state.");
             }
         } else {
             return null;
         }
+    }
+
+    Lexeme<JsonGrammarSymbols> buildFromBuffer(JsonGrammarSymbols s) {
+        Lexeme<JsonGrammarSymbols> l = new Lexeme<>(s, buf.toString());
+        buf.setLength(0);
+        state = LexerState.DATA;
+        return l;
     }
 
     @Override

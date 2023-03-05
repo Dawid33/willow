@@ -190,17 +190,17 @@ public class Grammar<T extends Enum<T>> {
             }
         }
 
-        System.out.printf("%-10s", "");
+        System.out.printf("%-14s", "");
         for (T row : terminals) {
-            System.out.printf("%-10s ", row);
+            System.out.printf("%-14s ", row);
         }
         System.out.println();
 
         for (T row : terminals) {
-            System.out.printf("%-10s", row);
+            System.out.printf("%-14s", row);
             var currRow = opTable.get(row);
             for (T col : terminals) {
-                System.out.printf("%-10s ", currRow.get(col));
+                System.out.printf("%-14s ", currRow.get(col));
             }
             System.out.println();
         }

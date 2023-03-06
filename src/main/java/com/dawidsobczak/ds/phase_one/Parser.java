@@ -1,5 +1,8 @@
 package com.dawidsobczak.ds.phase_one;
 
+import com.dawidsobczak.ds.phase_one.grammar.Grammar;
+import com.dawidsobczak.ds.phase_one.grammar.Rule;
+
 import java.util.HashMap;
 import java.util.LinkedList;
 
@@ -16,7 +19,7 @@ public class Parser<T extends Enum<T>> {
         this.outputTree = null;
     }
 
-    enum Associativity {
+    public enum Associativity {
         None,
         Left,
         Right,

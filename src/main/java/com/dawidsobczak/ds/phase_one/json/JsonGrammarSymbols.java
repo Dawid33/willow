@@ -1,4 +1,4 @@
-package com.dawidsobczak.ds.phase_one;
+package com.dawidsobczak.ds.phase_one.json;
 
 public enum JsonGrammarSymbols {
     // NonTerminal

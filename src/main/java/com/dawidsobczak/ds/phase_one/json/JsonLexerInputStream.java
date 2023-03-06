@@ -1,4 +1,7 @@
-package com.dawidsobczak.ds.phase_one;
+package com.dawidsobczak.ds.phase_one.json;
+
+import com.dawidsobczak.ds.phase_one.Lexeme;
+import com.dawidsobczak.ds.phase_one.LexerException;
 
 import java.io.Closeable;
 import java.io.IOException;

@@ -1,6 +1,9 @@
 package com.dawidsobczak.ds;
 
 import com.dawidsobczak.ds.phase_one.*;
+import com.dawidsobczak.ds.phase_one.grammar.GrammarBuilder;
+import com.dawidsobczak.ds.phase_one.json.JsonGrammarSymbols;
+import com.dawidsobczak.ds.phase_one.json.JsonLexerInputStream;
 import com.dawidsobczak.ds.phase_two.json.JsonAnalyzer;
 import com.dawidsobczak.ds.phase_two.json.JsonObject;
 
@@ -20,7 +23,7 @@ public class JsonParser {
 
     public void parse() throws Exception {
         try (JsonLexerInputStream lexemeStream = new JsonLexerInputStream(s)) {
-            Parser<JsonGrammarSymbols> p = new Parser<>(GrammarBuilder.buildGrammar());
+            Parser<JsonGrammarSymbols> p = new Parser<>(GrammarBuilder.buildJsonGrammar());
             while(lexemeStream.hasNext()) {
                 Lexeme<JsonGrammarSymbols> l = lexemeStream.next();
                 System.out.println("LEXER : " + l.type);

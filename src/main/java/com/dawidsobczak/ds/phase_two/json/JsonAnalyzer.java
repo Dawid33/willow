@@ -1,6 +1,6 @@
 package com.dawidsobczak.ds.phase_two.json;
 
-import com.dawidsobczak.ds.phase_one.JsonGrammarSymbols;
+import com.dawidsobczak.ds.phase_one.json.JsonGrammarSymbols;
 import com.dawidsobczak.ds.phase_one.Node;
 import com.dawidsobczak.ds.phase_one.ParseTree;
 import com.dawidsobczak.ds.phase_two.TransformerException;

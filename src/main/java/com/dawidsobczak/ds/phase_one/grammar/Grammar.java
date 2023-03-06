@@ -1,4 +1,4 @@
-package com.dawidsobczak.ds.phase_one;
+package com.dawidsobczak.ds.phase_one.grammar;
 
 import com.dawidsobczak.ds.phase_one.Parser.Associativity;
 
@@ -10,14 +10,11 @@ public class Grammar<T extends Enum<T>> {
     public T delim;
     public HashMap<T, ArrayList<T>> inverseRewriteRules;
     T axiom;
-    ArrayList<Rule<T>> rules;
+    public ArrayList<Rule<T>> rules;
     HashMap<T, HashMap<T, Associativity>> opTable = new HashMap<>();
 
     public Associativity getPrecedence(T left, T right) {
         return opTable.get(left).get(right);
-    }
-
-    void checkAndFixGrammar() throws GrammarException {
     }
 
     public Grammar(ArrayList<Rule<T>> rules, ArrayList<T> terminals, ArrayList<T> nonTerminals, T axiom, T delim) throws GrammarException {

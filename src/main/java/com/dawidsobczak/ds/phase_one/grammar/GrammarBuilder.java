@@ -1,10 +1,30 @@
-package com.dawidsobczak.ds.phase_one;
+package com.dawidsobczak.ds.phase_one.grammar;
+
+import com.dawidsobczak.ds.phase_one.arithmetic.ArithemticGrammarSymbols;
+import com.dawidsobczak.ds.phase_one.ds.DsGrammarSymbols;
+import com.dawidsobczak.ds.phase_one.json.JsonGrammarSymbols;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class GrammarBuilder {
-    public static Grammar<JsonGrammarSymbols> buildGrammar() throws GrammarException {
+    public static Grammar<DsGrammarSymbols> buildDsGrammar() throws GrammarException {
+        ArrayList<Rule<DsGrammarSymbols>> rules = new ArrayList<>();
+
+        var chunk = DsGrammarSymbols.CHUNK;
+
+        var endfile = DsGrammarSymbols.ENDFILE;
+        var block = DsGrammarSymbols.BLOCK;
+
+        rules.add(new Rule<>(chunk, new DsGrammarSymbols[]{block, endfile}));
+
+        var terminals = new ArrayList<>(List.of(endfile));
+        var nonTerminals = new ArrayList<>(List.of(new DsGrammarSymbols[]{}));
+
+        Grammar<DsGrammarSymbols> g = new Grammar<>(rules, terminals, nonTerminals, chunk, DsGrammarSymbols.DELIM);
+        return g;
+    }
+    public static Grammar<JsonGrammarSymbols> buildJsonGrammar() throws GrammarException {
         ArrayList<Rule<JsonGrammarSymbols>> rules = new ArrayList<>();
 
         var start = JsonGrammarSymbols.START;

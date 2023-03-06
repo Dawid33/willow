@@ -3,7 +3,7 @@ package com.dawidsobczak.ds.phase_one;
 import java.util.*;
 
 public class ParseTree<T> {
-    Node<T> root;
+    public Node<T> root;
     public ParseTree(Node<T> root) {
         this.root = root;
     }

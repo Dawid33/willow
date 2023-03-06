@@ -1,9 +1,9 @@
 package com.dawidsobczak.tests;
 
-import com.dawidsobczak.ds.phase_one.*;
-import com.dawidsobczak.ds.phase_one.arithmetic.ArithemticGrammarSymbols;
-import com.dawidsobczak.ds.phase_one.arithmetic.ArithemticLexerInputStream;
-import com.dawidsobczak.ds.phase_one.grammar.GrammarBuilder;
+import com.dawidsobczak.willow.phase_one.*;
+import com.dawidsobczak.willow.phase_one.arithmetic.ArithemticGrammarSymbols;
+import com.dawidsobczak.willow.phase_one.arithmetic.ArithemticLexerInputStream;
+import com.dawidsobczak.willow.phase_one.grammar.GrammarBuilder;
 import org.junit.jupiter.api.Test;
 
 import java.io.InputStream;

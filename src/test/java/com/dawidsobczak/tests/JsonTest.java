@@ -1,10 +1,7 @@
 package com.dawidsobczak.tests;
 
-import com.dawidsobczak.ds.JsonParser;
-import com.dawidsobczak.ds.phase_one.*;
+import com.dawidsobczak.willow.JsonParser;
 import org.junit.jupiter.api.Test;
-
-import java.io.InputStream;
 
 public class JsonTest {
     @Test

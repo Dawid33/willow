@@ -13,9 +13,6 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 public class CodeGenerator {
-    static void generateKVPair(Writer out) {
-    }
-
     public static void GenerateJson(Writer out, int minSizeBytes) throws Exception {
         int depth = 0;
         final int maxDepth = 5;

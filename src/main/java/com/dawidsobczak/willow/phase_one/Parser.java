@@ -190,37 +190,37 @@ public class Parser<T extends Enum<T>> {
 
         if (rule != null) {
            if (!applyRewrites.isEmpty()) {
-               for (int j = 0; j < rule.right.length; j++) {
-                   LexemeGrammarTuple<T> current = stack.get(i + offset);
-                   T token = applyRewrites.get(current.lexeme.type);
-                   if (token != null) {
-                       current.lexeme.type = token;
+                                     for (int j = 0; j < rule.right.length; j++) {
+                                     LexemeGrammarTuple<T> current = stack.get(i + offset);
+                                     T token = applyRewrites.get(current.lexeme.type);
+                                     if (token != null) {
+                                     current.lexeme.type = token;
 
-                       if (openNodes.containsKey(current)){
-                           openNodes.get(current).symbol = token;
-                       }
+                                     if (openNodes.containsKey(current)){
+                                     openNodes.get(current).symbol = token;
+                                     }
+                                     }
+                                     }
+                                     }
+
+           var parent = new Node<>(rule.left, null);
+           for (int j = 0; j < rule.right.length; j++) {
+               var current = stack.get(i + offset);
+               if (openNodes.containsKey(current)) {
+                   var subTree = openNodes.get(current);
+                   parent.appendChild(subTree);
+                   openNodes.remove(current);
+               } else {
+                   Node<T> leaf;
+                   if (current.lexeme.content != null) {
+                       leaf = new Node<>(current.lexeme().type, current.lexeme.content);
+                   } else {
+                       leaf = new Node<>(current.lexeme().type, null);
                    }
+                   parent.appendChild(leaf);
                }
+               stack.remove(i + offset);
            }
-
-            var parent = new Node<>(rule.left, null);
-            for (int j = 0; j < rule.right.length; j++) {
-                var current = stack.get(i + offset);
-                if (openNodes.containsKey(current)) {
-                    var subTree = openNodes.get(current);
-                    parent.appendChild(subTree);
-                    openNodes.remove(current);
-                } else {
-                    Node<T> leaf;
-                    if (current.lexeme.content != null) {
-                        leaf = new Node<>(current.lexeme().type, current.lexeme.content);
-                    } else {
-                        leaf = new Node<>(current.lexeme().type, null);
-                    }
-                    parent.appendChild(leaf);
-                }
-                stack.remove(i + offset);
-            }
 
             var left = new LexemeGrammarTuple<>(new Lexeme<>(rule.left, null), Associativity.Undefined);
             openNodes.put(left, parent);
